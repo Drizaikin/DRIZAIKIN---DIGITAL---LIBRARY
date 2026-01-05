@@ -44,8 +44,10 @@ export const authService = {
       throw new Error(data.error || 'Login failed');
     }
 
-    // Store user in localStorage for persistence
-    localStorage.setItem('drizaikn_user', JSON.stringify(data.user));
+    // Store user in sessionStorage - clears when browser/tab closes
+    sessionStorage.setItem('drizaikn_user', JSON.stringify(data.user));
+    // Also clear any old localStorage data
+    localStorage.removeItem('drizaikn_user');
     return data.user;
   },
 
@@ -62,25 +64,38 @@ export const authService = {
       throw new Error(data.error || 'Registration failed');
     }
 
-    // Store user in localStorage for persistence
-    localStorage.setItem('drizaikn_user', JSON.stringify(data.user));
+    // Store user in sessionStorage - clears when browser/tab closes
+    sessionStorage.setItem('drizaikn_user', JSON.stringify(data.user));
+    // Also clear any old localStorage data
+    localStorage.removeItem('drizaikn_user');
     return data.user;
   },
 
   logout(): void {
+    sessionStorage.removeItem('drizaikn_user');
     localStorage.removeItem('drizaikn_user');
   },
 
   getCurrentUser(): AuthUser | null {
-    const stored = localStorage.getItem('drizaikn_user');
-    return stored ? JSON.parse(stored) : null;
+    // Check sessionStorage first (new behavior)
+    const sessionStored = sessionStorage.getItem('drizaikn_user');
+    if (sessionStored) {
+      return JSON.parse(sessionStored);
+    }
+    // Fallback to localStorage for migration, then clear it
+    const localStored = localStorage.getItem('drizaikn_user');
+    if (localStored) {
+      localStorage.removeItem('drizaikn_user');
+      return null; // Force re-login for existing users
+    }
+    return null;
   },
 
   updateStoredUser(user: Partial<AuthUser>): void {
     const currentUser = this.getCurrentUser();
     if (currentUser) {
       const updatedUser = { ...currentUser, ...user };
-      localStorage.setItem('drizaikn_user', JSON.stringify(updatedUser));
+      sessionStorage.setItem('drizaikn_user', JSON.stringify(updatedUser));
     }
   }
 };

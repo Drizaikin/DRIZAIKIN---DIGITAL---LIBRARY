@@ -115,7 +115,8 @@ const Login: React.FC<LoginProps> = ({ onLogin, onSwitchToRegister }) => {
       });
       const data = await response.json();
       if (response.ok) {
-        localStorage.setItem('drizaikn_user', JSON.stringify(data.user));
+        sessionStorage.setItem('drizaikn_user', JSON.stringify(data.user));
+        localStorage.removeItem('drizaikn_user'); // Clear old localStorage data
         window.location.reload();
       } else {
         setSecurityMessage({ type: 'error', text: data.error || 'Login failed.' });
