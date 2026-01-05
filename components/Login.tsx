@@ -505,38 +505,38 @@ const Login: React.FC<LoginProps> = ({ onLogin, onSwitchToRegister }) => {
   }
 
 
-  // Drizaikn Logo SVG Component
+  // Drizaikn Logo SVG Component - Geometric interlocking D design matching brand identity
   const DrizaiknLogo: React.FC<{ className?: string }> = ({ className = "h-20 w-20" }) => (
     <svg className={className} viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
       <defs>
         <linearGradient id="loginLogoGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="#6366f1" />
-          <stop offset="50%" stopColor="#8b5cf6" />
-          <stop offset="100%" stopColor="#a855f7" />
-        </linearGradient>
-        <linearGradient id="loginLogoGradient2" x1="100%" y1="0%" x2="0%" y2="100%">
-          <stop offset="0%" stopColor="#3b82f6" />
-          <stop offset="100%" stopColor="#6366f1" />
+          <stop offset="0%" stopColor="#94a3b8" />
+          <stop offset="50%" stopColor="#64748b" />
+          <stop offset="100%" stopColor="#475569" />
         </linearGradient>
       </defs>
+      {/* Left D shape - outer */}
       <path 
-        d="M25 20 L25 80 L55 80 Q80 80 80 50 Q80 20 55 20 Z" 
-        stroke="url(#loginLogoGradient)" 
-        strokeWidth="6" 
-        fill="none"
-        strokeLinecap="round"
-        strokeLinejoin="round"
+        d="M15 15 L15 85 L40 85 L40 70 L30 70 L30 30 L40 30 L40 15 Z" 
+        fill="url(#loginLogoGradient)"
       />
+      {/* Left D curve */}
       <path 
-        d="M35 35 L35 65 L50 65 Q65 65 65 50 Q65 35 50 35 Z" 
-        stroke="url(#loginLogoGradient2)" 
-        strokeWidth="4" 
-        fill="none"
-        strokeLinecap="round"
-        strokeLinejoin="round"
+        d="M40 15 L40 30 L45 30 Q55 30 55 50 Q55 70 45 70 L40 70 L40 85 L50 85 Q75 85 75 50 Q75 15 50 15 Z" 
+        fill="url(#loginLogoGradient)"
       />
-      <circle cx="25" cy="20" r="4" fill="url(#loginLogoGradient)" />
-      <circle cx="25" cy="80" r="4" fill="url(#loginLogoGradient)" />
+      {/* Right D shape - mirrored and offset */}
+      <path 
+        d="M85 15 L85 85 L60 85 L60 70 L70 70 L70 30 L60 30 L60 15 Z" 
+        fill="url(#loginLogoGradient)"
+        opacity="0.7"
+      />
+      {/* Right D curve - mirrored */}
+      <path 
+        d="M60 15 L60 30 L55 30 Q45 30 45 50 Q45 70 55 70 L60 70 L60 85 L50 85 Q25 85 25 50 Q25 15 50 15 Z" 
+        fill="url(#loginLogoGradient)"
+        opacity="0.7"
+      />
     </svg>
   );
 
@@ -563,12 +563,12 @@ const Login: React.FC<LoginProps> = ({ onLogin, onSwitchToRegister }) => {
       
       <div className="glass-panel w-full max-w-md p-6 sm:p-8 rounded-3xl shadow-2xl border border-white/20 relative backdrop-blur-xl bg-white/95">
         <div className="text-center mb-6 sm:mb-8">
-          <div className="inline-flex justify-center items-center w-28 h-28 sm:w-36 sm:h-36 bg-gradient-to-br from-indigo-50 via-purple-50 to-violet-50 rounded-3xl mb-4 shadow-lg shadow-indigo-100/50 relative">
+          <div className="inline-flex justify-center items-center w-28 h-28 sm:w-36 sm:h-36 bg-gradient-to-br from-slate-50 via-slate-100 to-slate-50 rounded-3xl mb-4 shadow-lg shadow-slate-200/50 relative">
             <DrizaiknLogo className="h-16 w-16 sm:h-20 sm:w-20" />
-            <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/5 to-purple-500/5 rounded-3xl" />
+            <div className="absolute inset-0 bg-gradient-to-br from-slate-500/5 to-slate-600/5 rounded-3xl" />
           </div>
-          <h1 className="text-xl sm:text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 via-purple-600 to-violet-600">Welcome Back</h1>
-          <p className="text-slate-500 text-sm mt-1">Access the Drizaikn Digital Library</p>
+          <h1 className="text-xl sm:text-2xl font-bold text-slate-700 tracking-widest uppercase">DRIZAIKN</h1>
+          <p className="text-slate-400 text-xs mt-1 tracking-wider uppercase">Architect of Knowledge</p>
         </div>
 
         {/* Role Selection */}

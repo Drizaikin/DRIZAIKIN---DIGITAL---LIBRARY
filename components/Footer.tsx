@@ -6,25 +6,29 @@ const DrizaiknLogoSmall: React.FC<{ className?: string }> = ({ className = "h-6 
   <svg className={className} viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
     <defs>
       <linearGradient id="footerLogoGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-        <stop offset="0%" stopColor="#818cf8" />
-        <stop offset="100%" stopColor="#c084fc" />
+        <stop offset="0%" stopColor="#94a3b8" />
+        <stop offset="50%" stopColor="#cbd5e1" />
+        <stop offset="100%" stopColor="#e2e8f0" />
       </linearGradient>
     </defs>
+    {/* Left D shape */}
     <path 
-      d="M25 20 L25 80 L55 80 Q80 80 80 50 Q80 20 55 20 Z" 
-      stroke="url(#footerLogoGradient)" 
-      strokeWidth="8" 
-      fill="none"
-      strokeLinecap="round"
-      strokeLinejoin="round"
+      d="M15 15 L15 85 L40 85 L40 70 L30 70 L30 30 L40 30 L40 15 Z" 
+      fill="url(#footerLogoGradient)"
     />
     <path 
-      d="M35 35 L35 65 L50 65 Q65 65 65 50 Q65 35 50 35 Z" 
-      stroke="url(#footerLogoGradient)" 
-      strokeWidth="5" 
-      fill="none"
-      strokeLinecap="round"
-      strokeLinejoin="round"
+      d="M40 15 L40 30 L45 30 Q55 30 55 50 Q55 70 45 70 L40 70 L40 85 L50 85 Q75 85 75 50 Q75 15 50 15 Z" 
+      fill="url(#footerLogoGradient)"
+    />
+    {/* Right D shape - mirrored */}
+    <path 
+      d="M85 15 L85 85 L60 85 L60 70 L70 70 L70 30 L60 30 L60 15 Z" 
+      fill="url(#footerLogoGradient)"
+      opacity="0.6"
+    />
+    <path 
+      d="M60 15 L60 30 L55 30 Q45 30 45 50 Q45 70 55 70 L60 70 L60 85 L50 85 Q25 85 25 50 Q25 15 50 15 Z" 
+      fill="url(#footerLogoGradient)"
       opacity="0.6"
     />
   </svg>
@@ -41,10 +45,10 @@ const Footer: React.FC = () => {
           <div className="text-center md:text-left flex items-center gap-3">
             <DrizaiknLogoSmall className="h-8 w-8" />
             <div>
-              <p className="text-sm font-semibold text-transparent bg-clip-text bg-gradient-to-r from-indigo-300 to-purple-300">
-                Drizaikn Digital Library
+              <p className="text-sm font-bold text-slate-300 tracking-widest uppercase">
+                DRIZAIKN
               </p>
-              <p className="text-xs text-slate-400 mt-0.5">
+              <p className="text-xs text-slate-500 mt-0.5">
                 © {currentYear} All rights reserved.
               </p>
             </div>
