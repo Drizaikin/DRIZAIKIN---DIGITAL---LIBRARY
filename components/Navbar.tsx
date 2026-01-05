@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import { Library, BookOpen, Bot, LogOut, Settings, Menu, X, UserCog } from 'lucide-react';
 import { User } from '../types';
 
