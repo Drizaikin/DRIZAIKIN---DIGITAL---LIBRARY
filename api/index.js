@@ -1539,7 +1539,7 @@ app.post('/api/admin/books', async (req, res) => {
         cover_url: coverUrl || `https://picsum.photos/seed/${Date.now()}/400/600`,
         description: description || null, 
         total_copies: totalCopies || 1, 
-        copies_available: copiesAvailable || totalCopies || 1,
+        copies_available: copiesAvailable !== undefined ? copiesAvailable : (totalCopies || 1),
         isbn: isbn || null, 
         published_year: publishedYear || null, 
         popularity: 0,
@@ -1549,13 +1549,18 @@ app.post('/api/admin/books', async (req, res) => {
         soft_copy_url: softCopyUrl || null, 
         has_soft_copy: hasSoftCopy || false
       }])
-      .select()
-      .single();
+      .select();
+      
     if (error) {
       console.error('Supabase error adding book:', error);
       throw error;
     }
-    res.status(201).json({ success: true, book: data });
+    
+    if (!data || data.length === 0) {
+      throw new Error('Book was not created');
+    }
+    
+    res.status(201).json({ success: true, book: data[0] });
   } catch (err) {
     console.error('Error adding book:', err);
     res.status(500).json({ error: err.message || 'Failed to add book' });
@@ -1585,12 +1590,19 @@ app.put('/api/admin/books/:bookId', async (req, res) => {
     
     console.log('Updating book:', bookId, 'with data:', updateData);
     
-    const { data, error } = await supabase.from('books').update(updateData).eq('id', bookId).select().single();
+    // Don't use .single() - just update and check if any rows were affected
+    const { data, error } = await supabase.from('books').update(updateData).eq('id', bookId).select();
+    
     if (error) {
       console.error('Supabase update error:', error);
       throw error;
     }
-    res.json({ success: true, book: data });
+    
+    if (!data || data.length === 0) {
+      return res.status(404).json({ error: 'Book not found' });
+    }
+    
+    res.json({ success: true, book: data[0] });
   } catch (err) {
     console.error('Update book error:', err);
     res.status(500).json({ error: err.message || 'Failed to update book' });
