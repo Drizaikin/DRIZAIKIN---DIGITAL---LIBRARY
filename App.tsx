@@ -388,34 +388,6 @@ const App: React.FC = () => {
         <img src="/assets/logo-full.png" alt="DRIZAIKN - Architect of Knowledge" className="h-28 md:h-36 lg:h-44 w-auto object-contain" />
       </section>
 
-      {/* Navigation Tabs */}
-      <nav className="sticky top-16 z-40 py-3 px-4" style={{ backgroundColor: darkTheme.colors.primaryBg, borderBottom: `1px solid ${darkTheme.colors.logoAccent}30` }}>
-        <div className="flex items-center justify-center gap-1 md:gap-2 overflow-x-auto scrollbar-hide max-w-4xl mx-auto">
-          {[
-            { id: 'library' as NavTab, label: 'Library' },
-            { id: 'browse' as NavTab, label: 'Browse' },
-            { id: 'categories' as NavTab, label: 'Categories' },
-            { id: 'ai-librarian' as NavTab, label: 'AI Librarian' },
-            ...(user?.role === 'Admin' ? [{ id: 'admin' as NavTab, label: 'Admin' }] : [])
-          ].map((tab, index) => (
-            <React.Fragment key={tab.id}>
-              {index > 0 && <span className="text-sm hidden sm:inline" style={{ color: darkTheme.colors.logoAccent }}>|</span>}
-              <button
-                onClick={() => handleTabChange(tab.id)}
-                className="px-3 md:px-4 py-2 text-sm md:text-base font-medium whitespace-nowrap transition-all duration-200 rounded-lg"
-                style={{
-                  color: activeTab === tab.id ? darkTheme.colors.accent : darkTheme.colors.mutedText,
-                  backgroundColor: activeTab === tab.id ? `${darkTheme.colors.accent}15` : 'transparent',
-                  borderBottom: activeTab === tab.id ? `2px solid ${darkTheme.colors.accent}` : '2px solid transparent',
-                }}
-              >
-                {tab.label}
-              </button>
-            </React.Fragment>
-          ))}
-        </div>
-      </nav>
-
       <main className="flex-grow pb-20 lg:pb-12 px-4 md:px-6">
         {currentView === 'browse' && (
           <div className="max-w-7xl mx-auto animate-fade-in-up">
