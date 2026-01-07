@@ -7,6 +7,7 @@ import {
   Download, ChevronLeft, ChevronRight, Menu
 } from 'lucide-react';
 import { authService } from '../services/authService';
+import { uploadPdfToSupabase, isDirectUploadAvailable } from '../services/supabaseClient';
 import LiveTimer from './LiveTimer';
 import ExtractionPanel from './ExtractionPanel';
 import { useAppTheme } from '../hooks/useAppTheme';
@@ -2282,28 +2283,112 @@ const BookFormModal: React.FC<BookFormModalProps> = ({
       return;
     }
 
-    // Validate file size - Vercel has a 4.5MB limit for serverless functions
-    // For larger files, users should use direct URL input
-    if (file.size > 4 * 1024 * 1024) {
-      setPdfUploadError('File is too large for direct upload (max 4MB). Please upload to Google Drive or Dropbox and paste the URL instead.');
+    // Validate file size - 50MB max (Supabase Storage limit)
+    if (file.size > 50 * 1024 * 1024) {
+      setPdfUploadError('File size must be less than 50MB');
       return;
-    }
-
-    // Warn for files approaching the limit
-    if (file.size > 3 * 1024 * 1024) {
-      console.log('Large file detected, upload may be slow');
     }
 
     setUploadingPdf(true);
     setPdfUploadError(null);
 
     try {
+      // Try direct Supabase upload first (supports up to 50MB)
+      if (isDirectUploadAvailable()) {
+        console.log('Using direct Supabase upload for file:', file.name, 'Size:', (file.size / 1024 / 1024).toFixed(2) + 'MB');
+        
+        const result = await uploadPdfToSupabase(file);
+        
+        if (result) {
+          onChange({ ...book, softCopyUrl: result.url, hasSoftCopy: true });
+          setPdfFileName(file.name);
+          setPdfUploadError(null);
+          
+          // Try to extract metadata using AI
+          setAiLoading(true);
+          try {
+            const metadataResponse = await fetch(`${API_URL}/ai/extract-pdf-metadata`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ fileName: file.name })
+            });
+
+            if (metadataResponse.ok) {
+              const metadataData = await metadataResponse.json();
+              const metadata = metadataData.metadata || {};
+
+              // Get cover image
+              const coverResponse = await fetch(`${API_URL}/ai/book-cover`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                  title: metadata.title,
+                  author: metadata.author,
+                  isbn: metadata.isbn
+                })
+              });
+
+              let coverUrl = '';
+              if (coverResponse.ok) {
+                const coverData = await coverResponse.json();
+                coverUrl = coverData.coverUrl || '';
+              }
+
+              // Find matching category
+              let categoryId = '';
+              if (metadata.category && categories.length > 0) {
+                const matchingCategory = categories.find(
+                  c => c.name.toLowerCase().includes(metadata.category?.toLowerCase() || '') ||
+                       (metadata.category?.toLowerCase() || '').includes(c.name.toLowerCase())
+                );
+                if (matchingCategory) {
+                  categoryId = matchingCategory.id;
+                }
+              }
+
+              // Update with found metadata
+              onChange({
+                ...book,
+                softCopyUrl: result.url,
+                hasSoftCopy: true,
+                title: metadata.title || book.title,
+                author: metadata.author || book.author,
+                isbn: metadata.isbn || book.isbn,
+                publishedYear: metadata.publishedYear || book.publishedYear,
+                publisher: metadata.publisher || book.publisher,
+                description: metadata.description || book.description,
+                coverUrl: coverUrl || book.coverUrl,
+                categoryId: categoryId || book.categoryId
+              });
+
+              setAiSuccess('PDF uploaded and book info auto-filled! Review and edit as needed.');
+            }
+          } catch (err) {
+            console.error('AI metadata extraction error:', err);
+            // PDF uploaded successfully, just couldn't get metadata
+            setAiSuccess('PDF uploaded successfully!');
+          } finally {
+            setAiLoading(false);
+          }
+          
+          setUploadingPdf(false);
+          return;
+        }
+      }
+
+      // Fallback to API upload for smaller files (if direct upload not available)
+      if (file.size > 4 * 1024 * 1024) {
+        setPdfUploadError('Direct upload not available. File is too large for API upload (max 4MB). Please configure VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY for larger uploads.');
+        setUploadingPdf(false);
+        return;
+      }
+
       // Create a unique filename
       const timestamp = Date.now();
       const sanitizedName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
       const fileName = `${timestamp}_${sanitizedName}`;
 
-      // Read file as base64
+      // Read file as base64 for API upload
       const reader = new FileReader();
       
       reader.onload = async () => {
@@ -2657,7 +2742,7 @@ const BookFormModal: React.FC<BookFormModalProps> = ({
                         {pdfUploadError}
                       </p>
                     )}
-                    <p className="text-xs mt-2" style={{ color: theme.colors.mutedText }}>Max file size: 4MB. For larger files, use Google Drive/Dropbox and paste the URL below.</p>
+                    <p className="text-xs mt-2" style={{ color: theme.colors.mutedText }}>Max file size: 50MB. PDF files only.</p>
                   </div>
 
                   {/* OR divider */}
