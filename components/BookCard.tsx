@@ -1,6 +1,6 @@
 import React from 'react';
 import { Book, BookStatus } from '../types';
-import { Heart, Clock, AlertCircle, CheckCircle } from 'lucide-react';
+import { Heart, Clock, AlertCircle, CheckCircle, FileText } from 'lucide-react';
 import { IconSize } from '../services/preferencesService';
 import { ICON_SIZES } from '../constants/themes';
 import { useAppTheme } from '../hooks/useAppTheme';
@@ -165,6 +165,20 @@ const BookCard: React.FC<BookCardProps> = ({ book, index, onViewDetails, iconSiz
         >
           <Heart size={config.heartSize} />
         </button>
+
+        {/* PDF Available Badge */}
+        {(book.hasSoftCopy || book.softCopyUrl) && (
+          <div 
+            className="absolute top-2 left-2 md:top-3 md:left-3 px-2 py-1 rounded-full backdrop-blur-md flex items-center gap-1"
+            style={{ 
+              backgroundColor: 'rgba(34, 197, 94, 0.9)',
+              color: '#fff',
+            }}
+          >
+            <FileText size={config.iconSize} />
+            <span className={`font-semibold ${config.textSize}`}>PDF</span>
+          </div>
+        )}
       </div>
 
       {/* Content */}
