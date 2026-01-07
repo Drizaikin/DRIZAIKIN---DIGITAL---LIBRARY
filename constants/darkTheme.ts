@@ -18,5 +18,9 @@ export const darkTheme = {
     card: '12px',
     button: '8px',
     input: '8px',
+  },
+  shadows: {
+    card: '0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2)',
+    cardHover: '0 10px 25px -5px rgba(88, 166, 255, 0.2), 0 8px 10px -6px rgba(0, 0, 0, 0.3)',
   }
 };
