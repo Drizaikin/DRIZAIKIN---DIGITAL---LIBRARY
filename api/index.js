@@ -105,12 +105,23 @@ app.post('/api/auth/register', async (req, res) => {
   if (checkDb(res)) return;
   const { name, email, admissionNo, password, course, securityQuestion1, securityAnswer1, securityQuestion2, securityAnswer2 } = req.body;
 
+  // Validate required fields
+  if (!name || !email || !admissionNo || !password) {
+    return res.status(400).json({ error: 'Name, email, admission number, and password are required.' });
+  }
+
   try {
-    const { data: existingUser } = await supabase
+    // Check if user already exists
+    const { data: existingUser, error: checkError } = await supabase
       .from('users')
       .select('id')
       .eq('admission_no', admissionNo)
       .single();
+
+    if (checkError && checkError.code !== 'PGRST116') {
+      // PGRST116 = no rows returned, which is expected for new users
+      console.error('Error checking existing user:', checkError);
+    }
 
     if (existingUser) {
       return res.status(400).json({ error: 'Admission number already registered.' });
@@ -120,31 +131,48 @@ app.post('/api/auth/register', async (req, res) => {
     const passwordHash = await bcrypt.hash(password, salt);
     const avatarUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=1A365D&color=fff`;
 
-    // Hash security answers (case-insensitive)
+    // Hash security answers (case-insensitive) - only if provided
     const answer1Hash = securityAnswer1 ? await bcrypt.hash(securityAnswer1.toLowerCase().trim(), salt) : null;
     const answer2Hash = securityAnswer2 ? await bcrypt.hash(securityAnswer2.toLowerCase().trim(), salt) : null;
 
+    // Build insert object - only include security fields if they exist in the table
+    const insertData = { 
+      name, 
+      email, 
+      admission_no: admissionNo, 
+      password_hash: passwordHash, 
+      avatar_url: avatarUrl, 
+      course: course || null, 
+      role: 'Student'
+    };
+
+    // Only add security fields if they were provided
+    if (securityQuestion1) insertData.security_question_1 = securityQuestion1;
+    if (answer1Hash) insertData.security_answer_1 = answer1Hash;
+    if (securityQuestion2) insertData.security_question_2 = securityQuestion2;
+    if (answer2Hash) insertData.security_answer_2 = answer2Hash;
+
+    console.log('Attempting to register user:', { name, email, admissionNo, course });
+
     const { data, error } = await supabase
       .from('users')
-      .insert([{ 
-        name, email, admission_no: admissionNo, password_hash: passwordHash, 
-        avatar_url: avatarUrl, course: course || null, role: 'Student',
-        security_question_1: securityQuestion1 || null,
-        security_answer_1: answer1Hash,
-        security_question_2: securityQuestion2 || null,
-        security_answer_2: answer2Hash
-      }])
+      .insert([insertData])
       .select()
       .single();
 
-    if (error) throw error;
+    if (error) {
+      console.error('Supabase insert error:', error);
+      throw error;
+    }
+
+    console.log('User registered successfully:', data.id);
 
     res.status(201).json({ 
       user: { id: data.id, name: data.name, admissionNo: data.admission_no, role: data.role, avatarUrl: data.avatar_url, course: data.course } 
     });
   } catch (err) {
     console.error("Register Error:", err);
-    res.status(500).json({ error: 'Server error during registration.' });
+    res.status(500).json({ error: err.message || 'Server error during registration.' });
   }
 });
 
