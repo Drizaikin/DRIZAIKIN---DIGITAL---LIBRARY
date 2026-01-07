@@ -1498,23 +1498,40 @@ app.post('/api/admin/fetch-and-upload-cover', async (req, res) => {
 app.post('/api/admin/books', async (req, res) => {
   if (checkDb(res)) return;
   const { title, author, categoryId, coverUrl, description, totalCopies, copiesAvailable, isbn, publishedYear, callNumber, shelfLocation, floorNumber, softCopyUrl, hasSoftCopy } = req.body;
+  
+  // Validate required fields
+  if (!title || !author) {
+    return res.status(400).json({ error: 'Title and author are required' });
+  }
+  
   try {
     const { data, error } = await supabase
       .from('books')
       .insert([{
         title, author, category_id: categoryId || null,
         cover_url: coverUrl || `https://picsum.photos/seed/${Date.now()}/400/600`,
-        description, total_copies: totalCopies || 1, copies_available: copiesAvailable || totalCopies || 1,
-        isbn: isbn || null, published_year: publishedYear || null, popularity: 0,
-        call_number: callNumber || null, shelf_location: shelfLocation || null,
-        floor_number: floorNumber || null, soft_copy_url: softCopyUrl || null, has_soft_copy: hasSoftCopy || false
+        description: description || null, 
+        total_copies: totalCopies || 1, 
+        copies_available: copiesAvailable || totalCopies || 1,
+        isbn: isbn || null, 
+        published_year: publishedYear || null, 
+        popularity: 0,
+        call_number: callNumber || null, 
+        shelf_location: shelfLocation || null,
+        floor_number: floorNumber || null, 
+        soft_copy_url: softCopyUrl || null, 
+        has_soft_copy: hasSoftCopy || false
       }])
       .select()
       .single();
-    if (error) throw error;
+    if (error) {
+      console.error('Supabase error adding book:', error);
+      throw error;
+    }
     res.status(201).json({ success: true, book: data });
   } catch (err) {
-    res.status(500).json({ error: 'Failed to add book' });
+    console.error('Error adding book:', err);
+    res.status(500).json({ error: err.message || 'Failed to add book' });
   }
 });
 

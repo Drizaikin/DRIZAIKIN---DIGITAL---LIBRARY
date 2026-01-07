@@ -337,17 +337,20 @@ const AdminPanel: React.FC = () => {
         body: JSON.stringify(newBook)
       });
 
+      const data = await response.json();
+      
       if (response.ok) {
         showMessage('success', 'Book added successfully!');
         setShowAddForm(false);
         resetNewBookForm();
         fetchBooks();
       } else {
-        const data = await response.json();
+        console.error('Failed to add book:', data);
         showMessage('error', data.error || 'Failed to add book');
       }
     } catch (err) {
-      showMessage('error', 'Failed to add book');
+      console.error('Error adding book:', err);
+      showMessage('error', 'Failed to add book - network error');
     }
   };
 
