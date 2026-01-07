@@ -2382,7 +2382,7 @@ const BookFormModal: React.FC<BookFormModalProps> = ({
 
       // Fallback to API upload for smaller files (if direct upload not available)
       if (file.size > 4 * 1024 * 1024) {
-        setPdfUploadError('File too large (max 4MB via API). To upload larger files (up to 50MB), add VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY to Vercel environment variables, or paste a Google Drive/Dropbox URL below.');
+        setPdfUploadError(`File too large for API upload (${(file.size / 1024 / 1024).toFixed(1)}MB > 4MB limit). Direct Supabase upload is not configured. Please use a URL link instead, or contact admin to configure VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY.`);
         setUploadingPdf(false);
         return;
       }
