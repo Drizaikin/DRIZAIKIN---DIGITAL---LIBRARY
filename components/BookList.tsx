@@ -103,31 +103,6 @@ const BookList: React.FC<BookListProps> = ({ books, onViewDetails }) => {
                 )}
               </div>
 
-              {/* Mobile Action Button */}
-              <div className="mt-3 sm:hidden">
-                {book.status === BookStatus.AVAILABLE ? (
-                  <button className="w-full py-2 bg-gradient-to-r from-indigo-600 to-[#2a4a7f] text-white text-xs font-semibold rounded-lg shadow-md">
-                    Borrow
-                  </button>
-                ) : (
-                  <button className="w-full py-2 border border-rose-500 text-rose-500 text-xs font-semibold rounded-lg">
-                    Waitlist
-                  </button>
-                )}
-              </div>
-            </div>
-
-            {/* Desktop Action Buttons */}
-            <div className="hidden sm:flex flex-col justify-center p-3 md:p-4 border-l border-slate-100">
-              {book.status === BookStatus.AVAILABLE ? (
-                <button className="px-4 py-2 bg-gradient-to-r from-indigo-600 to-[#2a4a7f] text-white text-sm font-semibold rounded-lg shadow-md hover:shadow-lg transition-all whitespace-nowrap">
-                  Borrow Now
-                </button>
-              ) : (
-                <button className="px-4 py-2 border border-rose-500 text-rose-500 text-sm font-semibold rounded-lg hover:bg-rose-500 hover:text-white transition-all whitespace-nowrap">
-                  Join Waitlist
-                </button>
-              )}
             </div>
           </div>
         </div>

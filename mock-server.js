@@ -27,13 +27,12 @@ async function initMockUsers() {
   mockUsers = [
     {
       id: '1',
-      name: 'John Doe',
-      admission_no: 'B32/GV/12242/2022',
-      email: 'john.doe@drizaikn.edu',
-      password_hash: await bcrypt.hash('admin123', salt),
-      role: 'Student',
-      course: 'Computer Science',
-      avatar_url: 'https://ui-avatars.com/api/?name=John+Doe&background=4f46e5&color=fff',
+      name: 'John Reader',
+      username: 'reader1',
+      email: 'reader@drizaikn.com',
+      password_hash: await bcrypt.hash('reader123', salt),
+      role: 'Reader',
+      avatar_url: 'https://ui-avatars.com/api/?name=John+Reader&background=4f46e5&color=fff',
       security_question_1: 'What is your favorite color?',
       security_answer_1: await bcrypt.hash('blue', salt),
       security_question_2: 'What is your pet name?',
@@ -41,13 +40,12 @@ async function initMockUsers() {
     },
     {
       id: '2',
-      name: 'Dr. Jane Smith',
-      admission_no: 'LEC-001',
-      email: 'jane.smith@drizaikn.edu',
-      password_hash: await bcrypt.hash('lecturer123', salt),
-      role: 'Lecturer',
-      course: null,
-      avatar_url: 'https://ui-avatars.com/api/?name=Dr+Jane+Smith&background=10b981&color=fff',
+      name: 'Jane Premium',
+      username: 'premium1',
+      email: 'premium@drizaikn.com',
+      password_hash: await bcrypt.hash('premium123', salt),
+      role: 'Premium',
+      avatar_url: 'https://ui-avatars.com/api/?name=Jane+Premium&background=10b981&color=fff',
       security_question_1: 'What city were you born in?',
       security_answer_1: await bcrypt.hash('nairobi', salt),
       security_question_2: 'What is your mother maiden name?',
@@ -56,11 +54,10 @@ async function initMockUsers() {
     {
       id: '3',
       name: 'Library Admin',
-      admission_no: 'ADMIN001',
-      email: 'admin@drizaikn.edu',
+      username: 'admin1',
+      email: 'admin@drizaikn.com',
       password_hash: await bcrypt.hash('admin123', salt),
       role: 'Admin',
-      course: null,
       avatar_url: 'https://ui-avatars.com/api/?name=Library+Admin&background=dc2626&color=fff',
       security_question_1: 'What is your favorite book?',
       security_answer_1: await bcrypt.hash('1984', salt),
@@ -74,10 +71,10 @@ async function initMockUsers() {
 
 // Login endpoint
 app.post('/api/auth/login', async (req, res) => {
-  const { admissionNo, password, loginAs } = req.body;
+  const { username, password, loginAs } = req.body;
   
   try {
-    const user = mockUsers.find(u => u.admission_no === admissionNo);
+    const user = mockUsers.find(u => u.username === username);
     
     if (!user) {
       return res.status(401).json({ error: 'Invalid credentials' });
@@ -90,19 +87,19 @@ app.post('/api/auth/login', async (req, res) => {
     }
     
     // Role validation
-    if (loginAs === 'student' && user.role !== 'Student') {
+    if (loginAs === 'reader' && user.role !== 'Reader') {
       return res.status(403).json({ 
-        error: 'Access denied. This is not a student account.',
+        error: 'Access denied. This is not a reader account.',
         wrongRole: true
       });
-    } else if (loginAs === 'lecturer' && !['Lecturer', 'Faculty'].includes(user.role)) {
+    } else if (loginAs === 'premium' && user.role !== 'Premium') {
       return res.status(403).json({ 
-        error: 'Access denied. This is not a lecturer account.',
+        error: 'Access denied. This is not a premium account.',
         wrongRole: true
       });
     } else if (loginAs === 'admin' && user.role !== 'Admin') {
       return res.status(403).json({ 
-        error: 'Access denied. This is not a library staff account.',
+        error: 'Access denied. This is not an admin account.',
         wrongRole: true
       });
     }
@@ -111,10 +108,9 @@ app.post('/api/auth/login', async (req, res) => {
     const userData = {
       id: user.id,
       name: user.name,
-      admissionNo: user.admission_no,
+      username: user.username,
       email: user.email,
       role: user.role,
-      course: user.course,
       avatarUrl: user.avatar_url
     };
     
@@ -126,11 +122,11 @@ app.post('/api/auth/login', async (req, res) => {
 });
 
 // Get security questions
-app.get('/api/auth/security-questions/:admissionNo', async (req, res) => {
-  const { admissionNo } = req.params;
+app.get('/api/auth/security-questions/:username', async (req, res) => {
+  const { username } = req.params;
   
   try {
-    const user = mockUsers.find(u => u.admission_no === admissionNo);
+    const user = mockUsers.find(u => u.username === username);
     
     if (!user) {
       return res.status(404).json({ error: 'User not found' });
@@ -154,10 +150,10 @@ app.get('/api/auth/security-questions/:admissionNo', async (req, res) => {
 
 // Login with security questions
 app.post('/api/auth/login-security', async (req, res) => {
-  const { admissionNo, answer1, answer2 } = req.body;
+  const { username, answer1, answer2 } = req.body;
   
   try {
-    const user = mockUsers.find(u => u.admission_no === admissionNo);
+    const user = mockUsers.find(u => u.username === username);
     
     if (!user) {
       return res.status(404).json({ error: 'User not found' });
@@ -179,10 +175,9 @@ app.post('/api/auth/login-security', async (req, res) => {
     const userData = {
       id: user.id,
       name: user.name,
-      admissionNo: user.admission_no,
+      username: user.username,
       email: user.email,
       role: user.role,
-      course: user.course,
       avatarUrl: user.avatar_url
     };
     
@@ -195,10 +190,10 @@ app.post('/api/auth/login-security', async (req, res) => {
 
 // Reset password with security questions
 app.post('/api/auth/reset-password-security', async (req, res) => {
-  const { admissionNo, answer1, answer2, newPassword } = req.body;
+  const { username, answer1, answer2, newPassword } = req.body;
   
   try {
-    const user = mockUsers.find(u => u.admission_no === admissionNo);
+    const user = mockUsers.find(u => u.username === username);
     
     if (!user) {
       return res.status(404).json({ error: 'User not found' });
@@ -230,14 +225,14 @@ app.post('/api/auth/reset-password-security', async (req, res) => {
 initMockUsers().then(() => {
   app.listen(PORT, () => {
     console.log(`🚀 Mock server running on http://localhost:${PORT}`);
-    console.log('📚 Drizaikn Digital Library - Mock Authentication Server');
+    console.log('📚 DRIZAIKN Digital Library - Mock Authentication Server');
     console.log('');
     console.log('Test Accounts:');
-    console.log('Student: B32/GV/12242/2022 / admin123');
+    console.log('Reader:  username: reader1  / password: reader123');
     console.log('  Security: blue, buddy');
-    console.log('Lecturer: LEC-001 / lecturer123');
+    console.log('Premium: username: premium1 / password: premium123');
     console.log('  Security: nairobi, johnson');
-    console.log('Admin: ADMIN001 / admin123');
+    console.log('Admin:   username: admin1   / password: admin123');
     console.log('  Security: 1984, primary');
   });
 });

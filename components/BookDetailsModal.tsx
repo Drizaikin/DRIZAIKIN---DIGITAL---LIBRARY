@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import { Book, BookStatus, BorrowRequest } from '../types';
-import { X, MapPin, Hash, Calendar, User, BookOpen, Download, ExternalLink, CheckCircle, Clock, AlertCircle, Loader2 } from 'lucide-react';
+import React, { useEffect } from 'react';
+import { Book, BookStatus } from '../types';
+import { X, MapPin, Hash, Calendar, User, BookOpen, Download, ExternalLink, CheckCircle, Clock, AlertCircle } from 'lucide-react';
 import { authService } from '../services/authService';
 
 const API_URL = import.meta.env.VITE_API_URL || '/api';
@@ -9,15 +9,9 @@ interface BookDetailsModalProps {
   book: Book;
   onClose: () => void;
   userId?: string;
-  onBorrowRequest?: (bookId: string) => Promise<{ success: boolean; error?: string }>;
 }
 
-const BookDetailsModal: React.FC<BookDetailsModalProps> = ({ book, onClose, userId, onBorrowRequest }) => {
-  const [isLoading, setIsLoading] = useState(false);
-  const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
-  const [hasPendingRequest, setHasPendingRequest] = useState(false);
-  const [checkingRequest, setCheckingRequest] = useState(true);
-
+const BookDetailsModal: React.FC<BookDetailsModalProps> = ({ book, onClose, userId }) => {
   const currentUser = authService.getCurrentUser();
 
   // Record book view when modal opens (Requirement 5.2)
@@ -38,107 +32,7 @@ const BookDetailsModal: React.FC<BookDetailsModalProps> = ({ book, onClose, user
     };
     
     recordView();
-  }, [book.id, userId, currentUser?.id]);
-
-  // Check if user has a pending request for this book
-  useEffect(() => {
-    const checkPendingRequest = async () => {
-      if (!currentUser) {
-        setCheckingRequest(false);
-        return;
-      }
-
-      try {
-        const response = await fetch(`${API_URL}/borrow-requests/${currentUser.id}`);
-        if (response.ok) {
-          const requests: BorrowRequest[] = await response.json();
-          const pendingForThisBook = requests.some(
-            (req) => req.bookId === book.id && req.status === 'pending'
-          );
-          setHasPendingRequest(pendingForThisBook);
-        }
-      } catch (err) {
-        console.error('Error checking pending requests:', err);
-      } finally {
-        setCheckingRequest(false);
-      }
-    };
-
-    checkPendingRequest();
-  }, [currentUser, book.id]);
-
-  const handleBorrow = async () => {
-    if (!currentUser) {
-      setMessage({ type: 'error', text: 'Please log in to borrow books.' });
-      return;
-    }
-
-    setIsLoading(true);
-    setMessage(null);
-
-    try {
-      // Use the onBorrowRequest handler if provided, otherwise call API directly
-      if (onBorrowRequest) {
-        const result = await onBorrowRequest(book.id);
-        if (result.success) {
-          setMessage({ type: 'success', text: '✅ Borrow request submitted! Please wait for admin approval. Check "My Loans" to track your request status.' });
-          setHasPendingRequest(true);
-        } else {
-          setMessage({ type: 'error', text: result.error || 'Failed to submit borrow request.' });
-        }
-      } else {
-        // Fallback to direct API call
-        const response = await fetch(`${API_URL}/borrow-requests`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ userId: currentUser.id, bookId: book.id })
-        });
-
-        const data = await response.json();
-
-        if (response.ok && data.success) {
-          setMessage({ type: 'success', text: '✅ Borrow request submitted! Please wait for admin approval. Check "My Loans" to track your request status.' });
-          setHasPendingRequest(true);
-        } else {
-          setMessage({ type: 'error', text: data.error || 'Failed to submit borrow request.' });
-        }
-      }
-    } catch (err) {
-      setMessage({ type: 'error', text: 'Network error. Please try again.' });
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleJoinWaitlist = async () => {
-    if (!currentUser) {
-      setMessage({ type: 'error', text: 'Please log in to join the waitlist.' });
-      return;
-    }
-
-    setIsLoading(true);
-    setMessage(null);
-
-    try {
-      const response = await fetch(`${API_URL}/waitlist/join`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId: currentUser.id, bookId: book.id })
-      });
-
-      const data = await response.json();
-
-      if (response.ok && data.success) {
-        setMessage({ type: 'success', text: `✅ You've joined the waitlist! Your position: #${data.position}` });
-      } else {
-        setMessage({ type: 'error', text: data.error || 'Failed to join waitlist.' });
-      }
-    } catch (err) {
-      setMessage({ type: 'error', text: 'Network error. Please try again.' });
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  }, [book.id, userId, currentUser?.id]);;
   const getStatusColor = (status: BookStatus) => {
     switch (status) {
       case BookStatus.AVAILABLE: return 'bg-green-100 text-green-700 border-green-200';
@@ -330,67 +224,7 @@ const BookDetailsModal: React.FC<BookDetailsModalProps> = ({ book, onClose, user
 
               {/* Action Buttons */}
               <div className="flex flex-col gap-3 pt-4 border-t border-slate-200">
-                {/* Message Display */}
-                {message && (
-                  <div className={`p-3 rounded-lg text-sm ${
-                    message.type === 'success' 
-                      ? 'bg-green-50 text-green-700 border border-green-200' 
-                      : 'bg-red-50 text-red-700 border border-red-200'
-                  }`}>
-                    {message.text}
-                  </div>
-                )}
-
-                <div className="flex gap-3">
-                  {book.status === BookStatus.AVAILABLE ? (
-                    hasPendingRequest ? (
-                      <button 
-                        disabled
-                        className="flex-1 py-3 bg-amber-100 text-amber-700 font-semibold rounded-lg border border-amber-200 flex items-center justify-center gap-2 cursor-not-allowed"
-                      >
-                        <Clock size={18} />
-                        Request Pending
-                      </button>
-                    ) : checkingRequest ? (
-                      <button 
-                        disabled
-                        className="flex-1 py-3 bg-slate-100 text-slate-500 font-semibold rounded-lg flex items-center justify-center gap-2 cursor-not-allowed"
-                      >
-                        <Loader2 size={18} className="animate-spin" />
-                        Loading...
-                      </button>
-                    ) : (
-                      <button 
-                        onClick={handleBorrow}
-                        disabled={isLoading}
-                        className="flex-1 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-semibold rounded-lg shadow-lg hover:shadow-xl hover:scale-[1.02] transition-all disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                      >
-                        {isLoading ? (
-                          <>
-                            <Loader2 size={18} className="animate-spin" />
-                            Processing...
-                          </>
-                        ) : (
-                          'Request to Borrow'
-                        )}
-                      </button>
-                    )
-                  ) : (
-                    <button 
-                      onClick={handleJoinWaitlist}
-                      disabled={isLoading}
-                      className="flex-1 py-3 border-2 border-amber-500 text-amber-600 font-semibold rounded-lg hover:bg-amber-500 hover:text-white transition-all disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                    >
-                      {isLoading ? (
-                        <>
-                          <Loader2 size={18} className="animate-spin" />
-                          Processing...
-                        </>
-                      ) : (
-                        'Join Waitlist'
-                      )}
-                    </button>
-                  )}
+                <div className="flex gap-3 justify-end">
                   <button 
                     onClick={onClose}
                     className="px-6 py-3 border border-slate-300 text-slate-600 font-semibold rounded-lg hover:bg-slate-50 transition-all"
