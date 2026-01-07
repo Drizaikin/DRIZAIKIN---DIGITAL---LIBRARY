@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { User, Lock, ArrowRight, GraduationCap, Briefcase, BookOpen, ArrowLeft, CheckCircle, Shield, HelpCircle, Eye, EyeOff } from 'lucide-react';
-import { darkTheme } from '../constants/darkTheme';
+import { useAppTheme } from '../hooks/useAppTheme';
 
 const API_URL = import.meta.env.VITE_API_URL || '/api';
 
@@ -43,7 +43,8 @@ const Login: React.FC<LoginProps> = ({ onLogin, onSwitchToRegister }) => {
   const [resetMessage, setResetMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
   // Dark theme colors
-  const colors = darkTheme.colors;
+  const theme = useAppTheme();
+  const colors = theme.colors;
 
   const handleAdmissionNoChange = (value: string) => {
     setAdmissionNo(value);
@@ -252,7 +253,7 @@ const Login: React.FC<LoginProps> = ({ onLogin, onSwitchToRegister }) => {
   const inputStyle: React.CSSProperties = {
     backgroundColor: colors.secondarySurface,
     border: `1px solid ${colors.logoAccent}`,
-    borderRadius: darkTheme.borderRadius.input,
+    borderRadius: theme.borderRadius.input,
     color: colors.primaryText,
   };
 

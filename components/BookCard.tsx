@@ -3,7 +3,7 @@ import { Book, BookStatus } from '../types';
 import { Heart, Clock, AlertCircle, CheckCircle } from 'lucide-react';
 import { IconSize } from '../services/preferencesService';
 import { ICON_SIZES } from '../constants/themes';
-import { darkTheme } from '../constants/darkTheme';
+import { useAppTheme } from '../hooks/useAppTheme';
 
 interface BookCardProps {
   book: Book;
@@ -72,6 +72,7 @@ const SIZE_CONFIG = {
 };
 
 const BookCard: React.FC<BookCardProps> = ({ book, index, onViewDetails, iconSize = 'md' }) => {
+  const theme = useAppTheme();
   const sizeClasses = ICON_SIZES[iconSize];
   const config = SIZE_CONFIG[iconSize];
 
@@ -79,7 +80,7 @@ const BookCard: React.FC<BookCardProps> = ({ book, index, onViewDetails, iconSiz
     switch (status) {
       case BookStatus.AVAILABLE: return { bg: 'rgba(34, 197, 94, 0.2)', text: '#4ade80', border: 'rgba(34, 197, 94, 0.3)' };
       case BookStatus.WAITLIST: return { bg: 'rgba(251, 191, 36, 0.2)', text: '#fbbf24', border: 'rgba(251, 191, 36, 0.3)' };
-      case BookStatus.BORROWED: return { bg: 'rgba(139, 148, 158, 0.2)', text: darkTheme.colors.mutedText, border: 'rgba(139, 148, 158, 0.3)' };
+      case BookStatus.BORROWED: return { bg: 'rgba(139, 148, 158, 0.2)', text: theme.colors.mutedText, border: 'rgba(139, 148, 158, 0.3)' };
     }
   };
 
@@ -98,22 +99,22 @@ const BookCard: React.FC<BookCardProps> = ({ book, index, onViewDetails, iconSiz
       onClick={() => onViewDetails(book)}
       className={`group relative rounded-xl overflow-hidden transition-all duration-300 ease-out flex flex-col h-full cursor-pointer ${sizeClasses.card}`}
       style={{ 
-        backgroundColor: darkTheme.colors.secondarySurface,
-        border: `1px solid ${darkTheme.colors.logoAccent}40`,
+        backgroundColor: theme.colors.secondarySurface,
+        border: `1px solid ${theme.colors.logoAccent}40`,
         animationDelay: `${index * 50}ms`,
-        boxShadow: darkTheme.shadows.card,
+        boxShadow: theme.shadows.card,
       }}
       onMouseEnter={(e) => {
-        e.currentTarget.style.boxShadow = darkTheme.shadows.cardHover;
-        e.currentTarget.style.borderColor = `${darkTheme.colors.accent}60`;
+        e.currentTarget.style.boxShadow = theme.shadows.cardHover;
+        e.currentTarget.style.borderColor = `${theme.colors.accent}60`;
       }}
       onMouseLeave={(e) => {
-        e.currentTarget.style.boxShadow = darkTheme.shadows.card;
-        e.currentTarget.style.borderColor = `${darkTheme.colors.logoAccent}40`;
+        e.currentTarget.style.boxShadow = theme.shadows.card;
+        e.currentTarget.style.borderColor = `${theme.colors.logoAccent}40`;
       }}
     >
       {/* Image Container */}
-      <div className={`relative aspect-[2/3] overflow-hidden ${sizeClasses.image}`} style={{ backgroundColor: darkTheme.colors.primaryBg }}>
+      <div className={`relative aspect-[2/3] overflow-hidden ${sizeClasses.image}`} style={{ backgroundColor: theme.colors.primaryBg }}>
         <img 
           src={book.coverUrl} 
           alt={book.title} 
@@ -121,21 +122,21 @@ const BookCard: React.FC<BookCardProps> = ({ book, index, onViewDetails, iconSiz
         />
         <div 
           className="absolute inset-0 opacity-40 group-hover:opacity-20 transition-opacity duration-300"
-          style={{ background: `linear-gradient(to top, ${darkTheme.colors.primaryBg}, transparent)` }}
+          style={{ background: `linear-gradient(to top, ${theme.colors.primaryBg}, transparent)` }}
         />
         
         {/* Hover Overlay Buttons - Hidden on mobile and small sizes */}
         {(iconSize === 'md' || iconSize === 'lg' || iconSize === 'xl') && (
           <div 
             className="absolute bottom-0 left-0 right-0 p-3 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out backdrop-blur-md hidden md:block"
-            style={{ backgroundColor: `${darkTheme.colors.secondarySurface}ee` }}
+            style={{ backgroundColor: `${theme.colors.secondarySurface}ee` }}
           >
              {book.status === BookStatus.AVAILABLE ? (
                <button 
                  className={`w-full py-2.5 ${config.textSize} font-semibold rounded-lg transition-all flex items-center justify-center gap-2`}
                  style={{ 
-                   backgroundColor: darkTheme.colors.accent,
-                   color: darkTheme.colors.primaryBg,
+                   backgroundColor: theme.colors.accent,
+                   color: theme.colors.primaryBg,
                  }}
                >
                  Borrow Now
@@ -158,8 +159,8 @@ const BookCard: React.FC<BookCardProps> = ({ book, index, onViewDetails, iconSiz
         <button 
           className="absolute top-2 right-2 md:top-3 md:right-3 p-1.5 md:p-2 rounded-full backdrop-blur-md transition-all"
           style={{ 
-            backgroundColor: `${darkTheme.colors.primaryBg}60`,
-            color: darkTheme.colors.primaryText,
+            backgroundColor: `${theme.colors.primaryBg}60`,
+            color: theme.colors.primaryText,
           }}
         >
           <Heart size={config.heartSize} />
@@ -185,13 +186,13 @@ const BookCard: React.FC<BookCardProps> = ({ book, index, onViewDetails, iconSiz
 
         <h3 
           className={`font-semibold ${config.titleSize} leading-snug mb-1 transition-colors line-clamp-2`}
-          style={{ color: darkTheme.colors.primaryText }}
+          style={{ color: theme.colors.primaryText }}
         >
           {book.title}
         </h3>
         <p 
           className={`${config.textSize} font-medium mb-3 line-clamp-1`}
-          style={{ color: darkTheme.colors.mutedText }}
+          style={{ color: theme.colors.mutedText }}
         >
           {book.author}
         </p>
@@ -202,18 +203,18 @@ const BookCard: React.FC<BookCardProps> = ({ book, index, onViewDetails, iconSiz
               <div 
                 className="p-2 rounded-lg"
                 style={{ 
-                  backgroundColor: `${darkTheme.colors.accent}10`,
-                  border: `1px solid ${darkTheme.colors.accent}20`,
+                  backgroundColor: `${theme.colors.accent}10`,
+                  border: `1px solid ${theme.colors.accent}20`,
                 }}
               >
                 <div className={`flex items-center justify-between ${config.textSize}`}>
-                  <span style={{ color: darkTheme.colors.mutedText }}>Call Number:</span>
-                  <span className="font-bold" style={{ color: darkTheme.colors.accent }}>{book.callNumber}</span>
+                  <span style={{ color: theme.colors.mutedText }}>Call Number:</span>
+                  <span className="font-bold" style={{ color: theme.colors.accent }}>{book.callNumber}</span>
                 </div>
                 {book.shelfLocation && (
                   <div className={`flex items-center justify-between ${config.textSize} mt-1`}>
-                    <span style={{ color: darkTheme.colors.mutedText }}>Location:</span>
-                    <span style={{ color: darkTheme.colors.primaryText }}>{book.shelfLocation}</span>
+                    <span style={{ color: theme.colors.mutedText }}>Location:</span>
+                    <span style={{ color: theme.colors.primaryText }}>{book.shelfLocation}</span>
                   </div>
                 )}
               </div>
@@ -222,19 +223,19 @@ const BookCard: React.FC<BookCardProps> = ({ book, index, onViewDetails, iconSiz
             {/* Stats */}
             {config.showStats && (
               <div className="hidden sm:block">
-                <div className={`flex justify-between ${config.textSize} mb-1`} style={{ color: darkTheme.colors.mutedText }}>
+                <div className={`flex justify-between ${config.textSize} mb-1`} style={{ color: theme.colors.mutedText }}>
                   <span>Popularity</span>
                   <span>{book.popularity}%</span>
                 </div>
                 <div 
                   className="h-1.5 w-full rounded-full overflow-hidden"
-                  style={{ backgroundColor: darkTheme.colors.primaryBg }}
+                  style={{ backgroundColor: theme.colors.primaryBg }}
                 >
                   <div 
                     className="h-full rounded-full transition-all duration-500" 
                     style={{ 
                       width: `${book.popularity}%`,
-                      backgroundColor: darkTheme.colors.accent,
+                      backgroundColor: theme.colors.accent,
                     }}
                   />
                 </div>
@@ -245,21 +246,21 @@ const BookCard: React.FC<BookCardProps> = ({ book, index, onViewDetails, iconSiz
               <>
                 <div 
                   className={`flex items-center justify-between ${config.textSize} font-medium pt-2`}
-                  style={{ borderTop: `1px solid ${darkTheme.colors.logoAccent}30` }}
+                  style={{ borderTop: `1px solid ${theme.colors.logoAccent}30` }}
                 >
-                   <span style={{ color: darkTheme.colors.mutedText }}>Category</span>
+                   <span style={{ color: theme.colors.mutedText }}>Category</span>
                    <span 
                      className="px-2 py-0.5 rounded truncate max-w-[100px]"
                      style={{ 
-                       backgroundColor: `${darkTheme.colors.accent}15`,
-                       color: darkTheme.colors.accent,
+                       backgroundColor: `${theme.colors.accent}15`,
+                       color: theme.colors.accent,
                      }}
                    >
                      {book.category}
                    </span>
                 </div>
                 <div className={`flex items-center justify-between ${config.textSize} font-medium`}>
-                   <span style={{ color: darkTheme.colors.mutedText }}>Copies</span>
+                   <span style={{ color: theme.colors.mutedText }}>Copies</span>
                    <span style={{ color: book.copiesAvailable > 0 ? '#4ade80' : '#f87171' }}>
                      {book.copiesAvailable} / {book.totalCopies}
                    </span>
@@ -283,8 +284,8 @@ const BookCard: React.FC<BookCardProps> = ({ book, index, onViewDetails, iconSiz
             <button 
               className={`w-full py-2 ${config.textSize} font-semibold rounded-lg`}
               style={{ 
-                backgroundColor: darkTheme.colors.accent,
-                color: darkTheme.colors.primaryBg,
+                backgroundColor: theme.colors.accent,
+                color: theme.colors.primaryBg,
               }}
             >
               Read More
@@ -307,3 +308,4 @@ const BookCard: React.FC<BookCardProps> = ({ book, index, onViewDetails, iconSiz
 };
 
 export default BookCard;
+

@@ -12,9 +12,10 @@ import {
   ExtractionProgress,
   extractionService
 } from '../services/extractionService';
-import { darkTheme } from '../constants/darkTheme';
+import { useAppTheme } from '../hooks/useAppTheme';
 
 const ExtractionPanel: React.FC = () => {
+  const theme = useAppTheme();
   const [jobs, setJobs] = useState<ExtractionJob[]>([]);
   const [selectedJob, setSelectedJob] = useState<ExtractionJob | null>(null);
   const [extractedBooks, setExtractedBooks] = useState<ExtractedBook[]>([]);
@@ -255,8 +256,8 @@ const ExtractionPanel: React.FC = () => {
         <div 
           className="h-8 w-8 border-4 rounded-full animate-spin"
           style={{ 
-            borderColor: `${darkTheme.colors.accent}30`,
-            borderTopColor: darkTheme.colors.accent 
+            borderColor: `${theme.colors.accent}30`,
+            borderTopColor: theme.colors.accent 
           }} 
         />
       </div>
@@ -282,13 +283,13 @@ const ExtractionPanel: React.FC = () => {
       {/* Header with Create Button */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
         <div>
-          <h3 className="text-xl font-semibold" style={{ color: darkTheme.colors.accent }}>AI Book Extraction</h3>
-          <p className="text-sm" style={{ color: darkTheme.colors.mutedText }}>Automatically extract PDF books from websites</p>
+          <h3 className="text-xl font-semibold" style={{ color: theme.colors.accent }}>AI Book Extraction</h3>
+          <p className="text-sm" style={{ color: theme.colors.mutedText }}>Automatically extract PDF books from websites</p>
         </div>
         <button
           onClick={() => setShowCreateForm(true)}
           className="flex items-center gap-2 px-4 py-2 text-white text-sm rounded-lg transition-colors w-full sm:w-auto justify-center"
-          style={{ backgroundColor: darkTheme.colors.accent }}
+          style={{ backgroundColor: theme.colors.accent }}
         >
           <Plus size={16} />
           New Extraction Job
@@ -300,13 +301,13 @@ const ExtractionPanel: React.FC = () => {
         <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
           <div 
             className="rounded-xl p-6 max-w-md w-full max-h-[90vh] overflow-y-auto"
-            style={{ backgroundColor: darkTheme.colors.secondarySurface }}
+            style={{ backgroundColor: theme.colors.secondarySurface }}
           >
-            <h3 className="text-lg font-semibold mb-4" style={{ color: darkTheme.colors.accent }}>Create Extraction Job</h3>
+            <h3 className="text-lg font-semibold mb-4" style={{ color: theme.colors.accent }}>Create Extraction Job</h3>
             
             <form onSubmit={handleCreateJob} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium mb-1" style={{ color: darkTheme.colors.mutedText }}>
+                <label className="block text-sm font-medium mb-1" style={{ color: theme.colors.mutedText }}>
                   Source URL *
                 </label>
                 <input
@@ -316,13 +317,13 @@ const ExtractionPanel: React.FC = () => {
                   placeholder="https://example.com/books"
                   className="w-full px-3 py-2 text-sm rounded-lg focus:outline-none focus:ring-2"
                   style={{ 
-                    backgroundColor: darkTheme.colors.primaryBg,
-                    border: `1px solid ${darkTheme.colors.logoAccent}40`,
-                    color: darkTheme.colors.primaryText
+                    backgroundColor: theme.colors.primaryBg,
+                    border: `1px solid ${theme.colors.logoAccent}40`,
+                    color: theme.colors.primaryText
                   }}
                   required
                 />
-                <p className="text-xs mt-1" style={{ color: darkTheme.colors.mutedText }}>
+                <p className="text-xs mt-1" style={{ color: theme.colors.mutedText }}>
                   Enter the URL to crawl for PDF files
                 </p>
               </div>
@@ -334,17 +335,17 @@ const ExtractionPanel: React.FC = () => {
                   checked={useDefaults}
                   onChange={(e) => setUseDefaults(e.target.checked)}
                   className="rounded border-gray-600"
-                  style={{ accentColor: darkTheme.colors.accent }}
+                  style={{ accentColor: theme.colors.accent }}
                 />
-                <label htmlFor="useDefaults" className="text-sm" style={{ color: darkTheme.colors.primaryText }}>
+                <label htmlFor="useDefaults" className="text-sm" style={{ color: theme.colors.primaryText }}>
                   Use default limits (60 minutes, 100 books)
                 </label>
               </div>
 
               {!useDefaults && (
-                <div className="space-y-3 pl-6 border-l-2" style={{ borderColor: `${darkTheme.colors.logoAccent}40` }}>
+                <div className="space-y-3 pl-6 border-l-2" style={{ borderColor: `${theme.colors.logoAccent}40` }}>
                   <div>
-                    <label className="block text-sm font-medium mb-1" style={{ color: darkTheme.colors.mutedText }}>
+                    <label className="block text-sm font-medium mb-1" style={{ color: theme.colors.mutedText }}>
                       Max Time (minutes)
                     </label>
                     <input
@@ -355,15 +356,15 @@ const ExtractionPanel: React.FC = () => {
                       max="1440"
                       className="w-full px-3 py-2 text-sm rounded-lg focus:outline-none focus:ring-2"
                       style={{ 
-                        backgroundColor: darkTheme.colors.primaryBg,
-                        border: `1px solid ${darkTheme.colors.logoAccent}40`,
-                        color: darkTheme.colors.primaryText
+                        backgroundColor: theme.colors.primaryBg,
+                        border: `1px solid ${theme.colors.logoAccent}40`,
+                        color: theme.colors.primaryText
                       }}
                     />
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium mb-1" style={{ color: darkTheme.colors.mutedText }}>
+                    <label className="block text-sm font-medium mb-1" style={{ color: theme.colors.mutedText }}>
                       Max Books
                     </label>
                     <input
@@ -374,9 +375,9 @@ const ExtractionPanel: React.FC = () => {
                       max="1000"
                       className="w-full px-3 py-2 text-sm rounded-lg focus:outline-none focus:ring-2"
                       style={{ 
-                        backgroundColor: darkTheme.colors.primaryBg,
-                        border: `1px solid ${darkTheme.colors.logoAccent}40`,
-                        color: darkTheme.colors.primaryText
+                        backgroundColor: theme.colors.primaryBg,
+                        border: `1px solid ${theme.colors.logoAccent}40`,
+                        color: theme.colors.primaryText
                       }}
                     />
                   </div>
@@ -387,7 +388,7 @@ const ExtractionPanel: React.FC = () => {
                 <button
                   type="submit"
                   className="flex-1 px-4 py-2 text-white text-sm rounded-lg transition-colors"
-                  style={{ backgroundColor: darkTheme.colors.accent }}
+                  style={{ backgroundColor: theme.colors.accent }}
                 >
                   Create Job
                 </button>
@@ -399,8 +400,8 @@ const ExtractionPanel: React.FC = () => {
                   }}
                   className="px-4 py-2 text-sm rounded-lg transition-colors"
                   style={{ 
-                    border: `1px solid ${darkTheme.colors.logoAccent}40`,
-                    color: darkTheme.colors.primaryText
+                    border: `1px solid ${theme.colors.logoAccent}40`,
+                    color: theme.colors.primaryText
                   }}
                 >
                   Cancel
@@ -415,36 +416,36 @@ const ExtractionPanel: React.FC = () => {
       <div 
         className="rounded-xl overflow-hidden"
         style={{ 
-          backgroundColor: darkTheme.colors.secondarySurface,
-          border: `1px solid ${darkTheme.colors.logoAccent}40`
+          backgroundColor: theme.colors.secondarySurface,
+          border: `1px solid ${theme.colors.logoAccent}40`
         }}
       >
         <div 
           className="p-4"
           style={{ 
-            backgroundColor: darkTheme.colors.primaryBg,
-            borderBottom: `1px solid ${darkTheme.colors.logoAccent}40`
+            backgroundColor: theme.colors.primaryBg,
+            borderBottom: `1px solid ${theme.colors.logoAccent}40`
           }}
         >
-          <h4 className="font-semibold flex items-center gap-2" style={{ color: darkTheme.colors.primaryText }}>
-            <FileText size={16} style={{ color: darkTheme.colors.accent }} />
+          <h4 className="font-semibold flex items-center gap-2" style={{ color: theme.colors.primaryText }}>
+            <FileText size={16} style={{ color: theme.colors.accent }} />
             Extraction Jobs
           </h4>
         </div>
 
         {jobs.length === 0 ? (
-          <div className="p-8 text-center" style={{ color: darkTheme.colors.mutedText }}>
-            <FileText size={48} className="mx-auto mb-3" style={{ color: `${darkTheme.colors.mutedText}50` }} />
+          <div className="p-8 text-center" style={{ color: theme.colors.mutedText }}>
+            <FileText size={48} className="mx-auto mb-3" style={{ color: `${theme.colors.mutedText}50` }} />
             <p>No extraction jobs yet</p>
             <p className="text-sm mt-1">Create your first job to get started</p>
           </div>
         ) : (
-          <div style={{ borderColor: `${darkTheme.colors.logoAccent}20` }}>
+          <div style={{ borderColor: `${theme.colors.logoAccent}20` }}>
             {jobs.map((job) => (
               <div
                 key={job.id}
                 className="p-4 transition-colors"
-                style={{ borderBottom: `1px solid ${darkTheme.colors.logoAccent}20` }}
+                style={{ borderBottom: `1px solid ${theme.colors.logoAccent}20` }}
               >
                 {/* Mobile Card Layout (Requirement 8.1, 8.4) */}
                 <div className="flex flex-col gap-3">
@@ -455,35 +456,35 @@ const ExtractionPanel: React.FC = () => {
                       {job.status.toUpperCase()}
                     </span>
                     {job.status === 'running' && progress?.jobId === job.id && (
-                      <span className="text-xs font-medium" style={{ color: darkTheme.colors.mutedText }}>
+                      <span className="text-xs font-medium" style={{ color: theme.colors.mutedText }}>
                         {progress.booksExtracted} / {progress.maxBooks} books
                       </span>
                     )}
                   </div>
                   
                   {/* URL - Truncated for mobile */}
-                  <p className="text-sm font-medium break-all line-clamp-2" style={{ color: darkTheme.colors.primaryText }}>
+                  <p className="text-sm font-medium break-all line-clamp-2" style={{ color: theme.colors.primaryText }}>
                     {job.sourceUrl}
                   </p>
                   
                   {/* Stats Grid - Responsive layout */}
-                  <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-x-4 gap-y-1 text-xs" style={{ color: darkTheme.colors.mutedText }}>
+                  <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-x-4 gap-y-1 text-xs" style={{ color: theme.colors.mutedText }}>
                     <span className="flex items-center gap-1">
-                      <span className="font-medium" style={{ color: darkTheme.colors.primaryText }}>Books:</span> {job.booksExtracted}
+                      <span className="font-medium" style={{ color: theme.colors.primaryText }}>Books:</span> {job.booksExtracted}
                     </span>
                     <span className="flex items-center gap-1">
-                      <span className="font-medium" style={{ color: darkTheme.colors.primaryText }}>Errors:</span> {job.errorCount}
+                      <span className="font-medium" style={{ color: theme.colors.primaryText }}>Errors:</span> {job.errorCount}
                     </span>
                     <span className="flex items-center gap-1 col-span-2 sm:col-span-1">
-                      <span className="font-medium" style={{ color: darkTheme.colors.primaryText }}>Limit:</span> {job.maxTimeMinutes}min / {job.maxBooks} books
+                      <span className="font-medium" style={{ color: theme.colors.primaryText }}>Limit:</span> {job.maxTimeMinutes}min / {job.maxBooks} books
                     </span>
                     <span className="flex items-center gap-1 col-span-2 sm:col-span-1">
-                      <span className="font-medium" style={{ color: darkTheme.colors.primaryText }}>Created:</span> {new Date(job.createdAt).toLocaleDateString()}
+                      <span className="font-medium" style={{ color: theme.colors.primaryText }}>Created:</span> {new Date(job.createdAt).toLocaleDateString()}
                     </span>
                   </div>
 
                   {/* Action Buttons - Touch-friendly 44x44px minimum (Requirement 8.3) */}
-                  <div className="flex items-center gap-2 flex-wrap pt-2" style={{ borderTop: `1px solid ${darkTheme.colors.logoAccent}20` }}>
+                  <div className="flex items-center gap-2 flex-wrap pt-2" style={{ borderTop: `1px solid ${theme.colors.logoAccent}20` }}>
                     {job.status === 'pending' && (
                       <button
                         onClick={() => handleStartJob(job.id)}
@@ -547,7 +548,7 @@ const ExtractionPanel: React.FC = () => {
                     <button
                       onClick={() => handleViewJobDetails(job)}
                       className="min-w-[44px] min-h-[44px] p-2.5 rounded-lg transition-colors flex items-center justify-center touch-manipulation"
-                      style={{ color: darkTheme.colors.accent, backgroundColor: `${darkTheme.colors.accent}15` }}
+                      style={{ color: theme.colors.accent, backgroundColor: `${theme.colors.accent}15` }}
                       title="View Details"
                       aria-label="View Details"
                     >
@@ -558,7 +559,7 @@ const ExtractionPanel: React.FC = () => {
                       <button
                         onClick={() => updateJobProgress(job.id)}
                         className="min-w-[44px] min-h-[44px] p-2.5 rounded-lg transition-colors flex items-center justify-center touch-manipulation"
-                        style={{ color: darkTheme.colors.mutedText, backgroundColor: `${darkTheme.colors.logoAccent}15` }}
+                        style={{ color: theme.colors.mutedText, backgroundColor: `${theme.colors.logoAccent}15` }}
                         title="Refresh Progress"
                         aria-label="Refresh Progress"
                       >
@@ -570,20 +571,20 @@ const ExtractionPanel: React.FC = () => {
 
                 {/* Progress Bar for Running Jobs - Touch-friendly (Requirement 8.2) */}
                 {job.status === 'running' && progress?.jobId === job.id && (
-                  <div className="mt-4 pt-3" style={{ borderTop: `1px solid ${darkTheme.colors.logoAccent}20` }}>
-                    <div className="flex flex-col sm:flex-row sm:justify-between text-xs mb-2 gap-1" style={{ color: darkTheme.colors.primaryText }}>
+                  <div className="mt-4 pt-3" style={{ borderTop: `1px solid ${theme.colors.logoAccent}20` }}>
+                    <div className="flex flex-col sm:flex-row sm:justify-between text-xs mb-2 gap-1" style={{ color: theme.colors.primaryText }}>
                       <span className="font-medium">Progress: {Math.round((progress.booksExtracted / progress.maxBooks) * 100)}%</span>
-                      <span style={{ color: darkTheme.colors.mutedText }}>
+                      <span style={{ color: theme.colors.mutedText }}>
                         Elapsed: {formatDuration(progress.elapsedSeconds)}
                         {progress.estimatedRemainingSeconds > 0 && (
                           <> • ETA: {formatDuration(progress.estimatedRemainingSeconds)}</>
                         )}
                       </span>
                     </div>
-                    <div className="w-full rounded-full h-3 touch-manipulation" style={{ backgroundColor: `${darkTheme.colors.logoAccent}30` }}>
+                    <div className="w-full rounded-full h-3 touch-manipulation" style={{ backgroundColor: `${theme.colors.logoAccent}30` }}>
                       <div
                         className="h-3 rounded-full transition-all duration-300"
-                        style={{ backgroundColor: darkTheme.colors.accent, width: `${Math.min((progress.booksExtracted / progress.maxBooks) * 100, 100)}%` }}
+                        style={{ backgroundColor: theme.colors.accent, width: `${Math.min((progress.booksExtracted / progress.maxBooks) * 100, 100)}%` }}
                       />
                     </div>
                   </div>
@@ -599,22 +600,22 @@ const ExtractionPanel: React.FC = () => {
         <div 
           className="rounded-xl overflow-hidden"
           style={{ 
-            backgroundColor: darkTheme.colors.secondarySurface,
-            border: `1px solid ${darkTheme.colors.logoAccent}40`
+            backgroundColor: theme.colors.secondarySurface,
+            border: `1px solid ${theme.colors.logoAccent}40`
           }}
         >
           <div 
             className="p-4 flex items-center justify-between"
             style={{ 
-              backgroundColor: darkTheme.colors.primaryBg,
-              borderBottom: `1px solid ${darkTheme.colors.logoAccent}40`
+              backgroundColor: theme.colors.primaryBg,
+              borderBottom: `1px solid ${theme.colors.logoAccent}40`
             }}
           >
-            <h4 className="font-semibold" style={{ color: darkTheme.colors.primaryText }}>Job Details</h4>
+            <h4 className="font-semibold" style={{ color: theme.colors.primaryText }}>Job Details</h4>
             <button
               onClick={() => setSelectedJob(null)}
               className="min-w-[44px] min-h-[44px] p-2.5 rounded-lg transition-colors flex items-center justify-center touch-manipulation"
-              style={{ color: darkTheme.colors.mutedText }}
+              style={{ color: theme.colors.mutedText }}
               aria-label="Close details"
             >
               <XCircle size={20} />
@@ -623,28 +624,28 @@ const ExtractionPanel: React.FC = () => {
 
           <div className="p-4 space-y-4">
             {/* Job Info Section - Collapsible on mobile (Requirement 8.5) */}
-            <div className="rounded-lg overflow-hidden" style={{ border: `1px solid ${darkTheme.colors.logoAccent}40` }}>
+            <div className="rounded-lg overflow-hidden" style={{ border: `1px solid ${theme.colors.logoAccent}40` }}>
               <button
                 onClick={() => toggleSection('info')}
                 className="w-full p-3 flex items-center justify-between text-left min-h-[44px] touch-manipulation"
-                style={{ backgroundColor: darkTheme.colors.primaryBg }}
+                style={{ backgroundColor: theme.colors.primaryBg }}
                 aria-expanded={expandedSections.info}
               >
-                <span className="font-medium text-sm" style={{ color: darkTheme.colors.primaryText }}>Job Information</span>
-                {expandedSections.info ? <ChevronUp size={18} style={{ color: darkTheme.colors.mutedText }} /> : <ChevronDown size={18} style={{ color: darkTheme.colors.mutedText }} />}
+                <span className="font-medium text-sm" style={{ color: theme.colors.primaryText }}>Job Information</span>
+                {expandedSections.info ? <ChevronUp size={18} style={{ color: theme.colors.mutedText }} /> : <ChevronDown size={18} style={{ color: theme.colors.mutedText }} />}
               </button>
               
               {expandedSections.info && (
                 <div className="p-3 space-y-3">
                   {/* Source URL */}
                   <div className="text-sm">
-                    <span className="block mb-1" style={{ color: darkTheme.colors.mutedText }}>Source URL:</span>
+                    <span className="block mb-1" style={{ color: theme.colors.mutedText }}>Source URL:</span>
                     <a 
                       href={selectedJob.sourceUrl} 
                       target="_blank" 
                       rel="noopener noreferrer"
                       className="hover:underline break-all text-sm"
-                      style={{ color: darkTheme.colors.accent }}
+                      style={{ color: theme.colors.accent }}
                     >
                       {selectedJob.sourceUrl}
                     </a>
@@ -653,44 +654,44 @@ const ExtractionPanel: React.FC = () => {
                   {/* Stats Grid - Responsive for mobile (Requirement 8.1) */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
                     <div className="flex flex-col sm:flex-row sm:items-center gap-1">
-                      <span style={{ color: darkTheme.colors.mutedText }}>Status:</span>
+                      <span style={{ color: theme.colors.mutedText }}>Status:</span>
                       <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium w-fit ${getStatusColor(selectedJob.status)}`}>
                         {getStatusIcon(selectedJob.status)}
                         {selectedJob.status.toUpperCase()}
                       </span>
                     </div>
                     <div className="flex flex-col sm:flex-row sm:items-center gap-1">
-                      <span style={{ color: darkTheme.colors.mutedText }}>Books Extracted:</span>
-                      <span className="font-medium" style={{ color: darkTheme.colors.primaryText }}>{selectedJob.booksExtracted}</span>
+                      <span style={{ color: theme.colors.mutedText }}>Books Extracted:</span>
+                      <span className="font-medium" style={{ color: theme.colors.primaryText }}>{selectedJob.booksExtracted}</span>
                     </div>
                     <div className="flex flex-col sm:flex-row sm:items-center gap-1">
-                      <span style={{ color: darkTheme.colors.mutedText }}>Errors:</span>
+                      <span style={{ color: theme.colors.mutedText }}>Errors:</span>
                       <span className="font-medium text-red-400">{selectedJob.errorCount}</span>
                     </div>
                     <div className="flex flex-col sm:flex-row sm:items-center gap-1">
-                      <span style={{ color: darkTheme.colors.mutedText }}>Limits:</span>
-                      <span style={{ color: darkTheme.colors.primaryText }}>{selectedJob.maxTimeMinutes}min / {selectedJob.maxBooks} books</span>
+                      <span style={{ color: theme.colors.mutedText }}>Limits:</span>
+                      <span style={{ color: theme.colors.primaryText }}>{selectedJob.maxTimeMinutes}min / {selectedJob.maxBooks} books</span>
                     </div>
                     <div className="flex flex-col sm:flex-row sm:items-center gap-1">
-                      <span style={{ color: darkTheme.colors.mutedText }}>Created:</span>
-                      <span className="text-xs sm:text-sm" style={{ color: darkTheme.colors.primaryText }}>{new Date(selectedJob.createdAt).toLocaleString()}</span>
+                      <span style={{ color: theme.colors.mutedText }}>Created:</span>
+                      <span className="text-xs sm:text-sm" style={{ color: theme.colors.primaryText }}>{new Date(selectedJob.createdAt).toLocaleString()}</span>
                     </div>
                     {selectedJob.startedAt && (
                       <div className="flex flex-col sm:flex-row sm:items-center gap-1">
-                        <span style={{ color: darkTheme.colors.mutedText }}>Started:</span>
-                        <span className="text-xs sm:text-sm" style={{ color: darkTheme.colors.primaryText }}>{new Date(selectedJob.startedAt).toLocaleString()}</span>
+                        <span style={{ color: theme.colors.mutedText }}>Started:</span>
+                        <span className="text-xs sm:text-sm" style={{ color: theme.colors.primaryText }}>{new Date(selectedJob.startedAt).toLocaleString()}</span>
                       </div>
                     )}
                     {selectedJob.completedAt && (
                       <>
                         <div className="flex flex-col sm:flex-row sm:items-center gap-1">
-                          <span style={{ color: darkTheme.colors.mutedText }}>Completed:</span>
-                          <span className="text-xs sm:text-sm" style={{ color: darkTheme.colors.primaryText }}>{new Date(selectedJob.completedAt).toLocaleString()}</span>
+                          <span style={{ color: theme.colors.mutedText }}>Completed:</span>
+                          <span className="text-xs sm:text-sm" style={{ color: theme.colors.primaryText }}>{new Date(selectedJob.completedAt).toLocaleString()}</span>
                         </div>
                         {selectedJob.startedAt && (
                           <div className="flex flex-col sm:flex-row sm:items-center gap-1">
-                            <span style={{ color: darkTheme.colors.mutedText }}>Duration:</span>
-                            <span style={{ color: darkTheme.colors.primaryText }}>
+                            <span style={{ color: theme.colors.mutedText }}>Duration:</span>
+                            <span style={{ color: theme.colors.primaryText }}>
                               {formatDuration(
                                 Math.floor((new Date(selectedJob.completedAt).getTime() - new Date(selectedJob.startedAt).getTime()) / 1000)
                               )}
@@ -706,17 +707,17 @@ const ExtractionPanel: React.FC = () => {
 
             {/* Extracted Books Section - Collapsible (Requirement 8.5) */}
             {extractedBooks.length > 0 && (
-              <div className="rounded-lg overflow-hidden" style={{ border: `1px solid ${darkTheme.colors.logoAccent}40` }}>
+              <div className="rounded-lg overflow-hidden" style={{ border: `1px solid ${theme.colors.logoAccent}40` }}>
                 <button
                   onClick={() => toggleSection('books')}
                   className="w-full p-3 flex items-center justify-between text-left min-h-[44px] touch-manipulation"
-                  style={{ backgroundColor: darkTheme.colors.primaryBg }}
+                  style={{ backgroundColor: theme.colors.primaryBg }}
                   aria-expanded={expandedSections.books}
                 >
-                  <span className="font-medium text-sm" style={{ color: darkTheme.colors.primaryText }}>
+                  <span className="font-medium text-sm" style={{ color: theme.colors.primaryText }}>
                     Extracted Books ({extractedBooks.length})
                   </span>
-                  {expandedSections.books ? <ChevronUp size={18} style={{ color: darkTheme.colors.mutedText }} /> : <ChevronDown size={18} style={{ color: darkTheme.colors.mutedText }} />}
+                  {expandedSections.books ? <ChevronUp size={18} style={{ color: theme.colors.mutedText }} /> : <ChevronDown size={18} style={{ color: theme.colors.mutedText }} />}
                 </button>
                 
                 {expandedSections.books && (
@@ -725,7 +726,7 @@ const ExtractionPanel: React.FC = () => {
                       <div 
                         key={book.id} 
                         className="flex items-start gap-3 p-2 rounded-lg"
-                        style={{ backgroundColor: darkTheme.colors.primaryBg }}
+                        style={{ backgroundColor: theme.colors.primaryBg }}
                       >
                         <img
                           src={book.coverUrl}
@@ -733,8 +734,8 @@ const ExtractionPanel: React.FC = () => {
                           className="w-12 h-16 object-cover rounded shadow-sm shrink-0"
                         />
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium line-clamp-2" style={{ color: darkTheme.colors.primaryText }}>{book.title}</p>
-                          <p className="text-xs truncate" style={{ color: darkTheme.colors.mutedText }}>{book.author}</p>
+                          <p className="text-sm font-medium line-clamp-2" style={{ color: theme.colors.primaryText }}>{book.title}</p>
+                          <p className="text-xs truncate" style={{ color: theme.colors.mutedText }}>{book.author}</p>
                           <span className={`inline-block mt-1 px-2 py-0.5 rounded text-xs ${
                             book.status === 'completed' || book.status === 'published'
                               ? 'bg-green-900/50 text-green-400'
@@ -754,23 +755,23 @@ const ExtractionPanel: React.FC = () => {
 
             {/* Logs Section - Collapsible (Requirement 8.5) */}
             {logs.length > 0 && (
-              <div className="rounded-lg overflow-hidden" style={{ border: `1px solid ${darkTheme.colors.logoAccent}40` }}>
+              <div className="rounded-lg overflow-hidden" style={{ border: `1px solid ${theme.colors.logoAccent}40` }}>
                 <button
                   onClick={() => toggleSection('logs')}
                   className="w-full p-3 flex items-center justify-between text-left min-h-[44px] touch-manipulation"
-                  style={{ backgroundColor: darkTheme.colors.primaryBg }}
+                  style={{ backgroundColor: theme.colors.primaryBg }}
                   aria-expanded={expandedSections.logs}
                 >
-                  <span className="font-medium text-sm" style={{ color: darkTheme.colors.primaryText }}>
+                  <span className="font-medium text-sm" style={{ color: theme.colors.primaryText }}>
                     Recent Logs ({logs.length})
                   </span>
-                  {expandedSections.logs ? <ChevronUp size={18} style={{ color: darkTheme.colors.mutedText }} /> : <ChevronDown size={18} style={{ color: darkTheme.colors.mutedText }} />}
+                  {expandedSections.logs ? <ChevronUp size={18} style={{ color: theme.colors.mutedText }} /> : <ChevronDown size={18} style={{ color: theme.colors.mutedText }} />}
                 </button>
                 
                 {expandedSections.logs && (
                   <div 
                     className="p-3 space-y-1 max-h-48 overflow-y-auto font-mono text-xs"
-                    style={{ backgroundColor: darkTheme.colors.primaryBg }}
+                    style={{ backgroundColor: theme.colors.primaryBg }}
                   >
                     {logs.map((log) => (
                       <div
@@ -782,10 +783,10 @@ const ExtractionPanel: React.FC = () => {
                             ? 'text-yellow-400'
                             : ''
                         }`}
-                        style={{ color: log.level !== 'error' && log.level !== 'warning' ? darkTheme.colors.primaryText : undefined }}
+                        style={{ color: log.level !== 'error' && log.level !== 'warning' ? theme.colors.primaryText : undefined }}
                       >
-                        <span style={{ color: darkTheme.colors.mutedText }}>[{new Date(log.createdAt).toLocaleTimeString()}]</span>{' '}
-                        <span style={{ color: darkTheme.colors.logoAccent }}>[{log.level.toUpperCase()}]</span>{' '}
+                        <span style={{ color: theme.colors.mutedText }}>[{new Date(log.createdAt).toLocaleTimeString()}]</span>{' '}
+                        <span style={{ color: theme.colors.logoAccent }}>[{log.level.toUpperCase()}]</span>{' '}
                         {log.message}
                       </div>
                     ))}
@@ -801,3 +802,4 @@ const ExtractionPanel: React.FC = () => {
 };
 
 export default ExtractionPanel;
+

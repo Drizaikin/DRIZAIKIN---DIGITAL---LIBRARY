@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Send, Bot, User, Sparkles, Settings, Trash2, History } from 'lucide-react';
 import { ChatMessage, User as UserType } from '../types';
 import { generateLibrarianResponse, getChatHistory, clearChatHistory } from '../services/geminiService';
-import { darkTheme } from '../constants/darkTheme';
+import { useAppTheme } from '../hooks/useAppTheme';
 
 interface AILibrarianProps {
   currentUser?: UserType | null;
@@ -24,6 +24,7 @@ const formatMessage = (text: string): React.ReactNode => {
 };
 
 const AILibrarian: React.FC<AILibrarianProps> = ({ currentUser }) => {
+  const theme = useAppTheme();
   const [interests, setInterests] = useState<string>('');
   const [showSettings, setShowSettings] = useState(false);
   const [isLoadingHistory, setIsLoadingHistory] = useState(true);
@@ -135,8 +136,8 @@ const AILibrarian: React.FC<AILibrarianProps> = ({ currentUser }) => {
        <div 
          className="rounded-t-xl md:rounded-t-2xl p-4 md:p-6 shadow-lg shrink-0"
          style={{ 
-           backgroundColor: darkTheme.colors.secondarySurface,
-           borderBottom: `1px solid ${darkTheme.colors.logoAccent}40`
+           backgroundColor: theme.colors.secondarySurface,
+           borderBottom: `1px solid ${theme.colors.logoAccent}40`
          }}
        >
           <div className="flex items-center justify-between gap-2">
@@ -144,17 +145,17 @@ const AILibrarian: React.FC<AILibrarianProps> = ({ currentUser }) => {
                <div 
                  className="p-2 md:p-3 rounded-full backdrop-blur-md shrink-0"
                  style={{ 
-                   backgroundColor: `${darkTheme.colors.accent}20`,
-                   border: `1px solid ${darkTheme.colors.accent}40`
+                   backgroundColor: `${theme.colors.accent}20`,
+                   border: `1px solid ${theme.colors.accent}40`
                  }}
                >
-                 <Sparkles size={20} className="animate-pulse-slow" style={{ color: darkTheme.colors.accent }} />
+                 <Sparkles size={20} className="animate-pulse-slow" style={{ color: theme.colors.accent }} />
                </div>
                <div className="min-w-0">
-                 <h2 className="text-lg md:text-2xl font-serif font-bold truncate" style={{ color: darkTheme.colors.primaryText }}>
+                 <h2 className="text-lg md:text-2xl font-serif font-bold truncate" style={{ color: theme.colors.primaryText }}>
                    AI Research Assistant
                  </h2>
-                 <p className="text-xs md:text-sm opacity-80 truncate" style={{ color: darkTheme.colors.mutedText }}>
+                 <p className="text-xs md:text-sm opacity-80 truncate" style={{ color: theme.colors.mutedText }}>
                    {currentUser?.course ? `For ${currentUser.course}` : 'Drizaikn Library'}
                    {messages.length > 1 && (
                      <span className="ml-1 md:ml-2 inline-flex items-center gap-1">
@@ -170,8 +171,8 @@ const AILibrarian: React.FC<AILibrarianProps> = ({ currentUser }) => {
                  onClick={() => setShowSettings(!showSettings)}
                  className="p-1.5 md:p-2 rounded-lg transition-colors"
                  style={{ 
-                   backgroundColor: darkTheme.colors.hoverBg,
-                   color: darkTheme.colors.primaryText
+                   backgroundColor: theme.colors.hoverBg,
+                   color: theme.colors.primaryText
                  }}
                  title="Set your interests"
                >
@@ -182,8 +183,8 @@ const AILibrarian: React.FC<AILibrarianProps> = ({ currentUser }) => {
                    onClick={handleClearHistory}
                    className="p-1.5 md:p-2 rounded-lg hover:bg-red-500/50 transition-colors"
                    style={{ 
-                     backgroundColor: darkTheme.colors.hoverBg,
-                     color: darkTheme.colors.primaryText
+                     backgroundColor: theme.colors.hoverBg,
+                     color: theme.colors.primaryText
                    }}
                    title="Clear chat history"
                  >
@@ -197,11 +198,11 @@ const AILibrarian: React.FC<AILibrarianProps> = ({ currentUser }) => {
             <div 
               className="mt-3 md:mt-4 p-3 md:p-4 rounded-lg md:rounded-xl backdrop-blur-md"
               style={{ 
-                backgroundColor: darkTheme.colors.hoverBg,
-                border: `1px solid ${darkTheme.colors.logoAccent}40`
+                backgroundColor: theme.colors.hoverBg,
+                border: `1px solid ${theme.colors.logoAccent}40`
               }}
             >
-              <label className="block text-xs md:text-sm font-medium mb-2" style={{ color: darkTheme.colors.primaryText }}>
+              <label className="block text-xs md:text-sm font-medium mb-2" style={{ color: theme.colors.primaryText }}>
                 Your Interests (optional)
               </label>
               <input
@@ -211,13 +212,13 @@ const AILibrarian: React.FC<AILibrarianProps> = ({ currentUser }) => {
                 placeholder="e.g., Machine Learning, African History..."
                 className="w-full rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 transition-all"
                 style={{ 
-                  backgroundColor: darkTheme.colors.primaryBg,
-                  border: `1px solid ${darkTheme.colors.logoAccent}`,
-                  color: darkTheme.colors.primaryText,
-                  '--tw-ring-color': darkTheme.colors.accent
+                  backgroundColor: theme.colors.primaryBg,
+                  border: `1px solid ${theme.colors.logoAccent}`,
+                  color: theme.colors.primaryText,
+                  '--tw-ring-color': theme.colors.accent
                 } as React.CSSProperties}
               />
-              <p className="text-[10px] md:text-xs mt-2" style={{ color: darkTheme.colors.mutedText }}>
+              <p className="text-[10px] md:text-xs mt-2" style={{ color: theme.colors.mutedText }}>
                 Add interests for personalized recommendations
               </p>
             </div>
@@ -228,9 +229,9 @@ const AILibrarian: React.FC<AILibrarianProps> = ({ currentUser }) => {
        <div 
          className="flex-1 overflow-y-auto p-3 md:p-6"
          style={{ 
-           backgroundColor: darkTheme.colors.primaryBg,
-           borderLeft: `1px solid ${darkTheme.colors.logoAccent}30`,
-           borderRight: `1px solid ${darkTheme.colors.logoAccent}30`
+           backgroundColor: theme.colors.primaryBg,
+           borderLeft: `1px solid ${theme.colors.logoAccent}30`,
+           borderRight: `1px solid ${theme.colors.logoAccent}30`
          }}
        >
           {isLoadingHistory ? (
@@ -239,11 +240,11 @@ const AILibrarian: React.FC<AILibrarianProps> = ({ currentUser }) => {
                 <div 
                   className="w-8 h-8 border-4 rounded-full animate-spin mx-auto mb-3"
                   style={{ 
-                    borderColor: `${darkTheme.colors.accent}30`,
-                    borderTopColor: darkTheme.colors.accent
+                    borderColor: `${theme.colors.accent}30`,
+                    borderTopColor: theme.colors.accent
                   }}
                 />
-                <p className="text-sm" style={{ color: darkTheme.colors.mutedText }}>Loading your conversation history...</p>
+                <p className="text-sm" style={{ color: theme.colors.mutedText }}>Loading your conversation history...</p>
               </div>
             </div>
           ) : (
@@ -256,8 +257,8 @@ const AILibrarian: React.FC<AILibrarianProps> = ({ currentUser }) => {
                 <div 
                   className="shrink-0 w-8 h-8 md:w-10 md:h-10 rounded-full flex items-center justify-center shadow-sm"
                   style={{ 
-                    backgroundColor: msg.role === 'model' ? darkTheme.colors.accent : darkTheme.colors.hoverBg,
-                    color: msg.role === 'model' ? '#ffffff' : darkTheme.colors.primaryText
+                    backgroundColor: msg.role === 'model' ? theme.colors.accent : theme.colors.hoverBg,
+                    color: msg.role === 'model' ? '#ffffff' : theme.colors.primaryText
                   }}
                 >
                   {msg.role === 'model' ? <Bot size={16} /> : <User size={16} />}
@@ -268,15 +269,15 @@ const AILibrarian: React.FC<AILibrarianProps> = ({ currentUser }) => {
                      msg.role === 'user' ? 'rounded-tr-none' : 'rounded-tl-none'
                   }`}
                   style={{ 
-                    backgroundColor: msg.role === 'user' ? darkTheme.colors.accent : darkTheme.colors.secondarySurface,
-                    color: msg.role === 'user' ? '#ffffff' : darkTheme.colors.primaryText,
-                    border: msg.role === 'model' ? `1px solid ${darkTheme.colors.logoAccent}40` : 'none'
+                    backgroundColor: msg.role === 'user' ? theme.colors.accent : theme.colors.secondarySurface,
+                    color: msg.role === 'user' ? '#ffffff' : theme.colors.primaryText,
+                    border: msg.role === 'model' ? `1px solid ${theme.colors.logoAccent}40` : 'none'
                   }}
                 >
                   <p className="text-xs md:text-sm leading-relaxed whitespace-pre-wrap">{formatMessage(msg.text)}</p>
                   <span 
                     className="text-[9px] md:text-[10px] block mt-1 md:mt-2 opacity-60"
-                    style={{ color: msg.role === 'user' ? 'rgba(255,255,255,0.7)' : darkTheme.colors.mutedText }}
+                    style={{ color: msg.role === 'user' ? 'rgba(255,255,255,0.7)' : theme.colors.mutedText }}
                   >
                     {msg.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                   </span>
@@ -288,20 +289,20 @@ const AILibrarian: React.FC<AILibrarianProps> = ({ currentUser }) => {
               <div className="flex gap-2 md:gap-4">
                  <div 
                    className="shrink-0 w-8 h-8 md:w-10 md:h-10 rounded-full flex items-center justify-center"
-                   style={{ backgroundColor: darkTheme.colors.accent, color: '#ffffff' }}
+                   style={{ backgroundColor: theme.colors.accent, color: '#ffffff' }}
                  >
                     <Bot size={16} />
                  </div>
                  <div 
                    className="rounded-xl md:rounded-2xl rounded-tl-none p-3 md:p-4 shadow-sm flex items-center gap-2"
                    style={{ 
-                     backgroundColor: darkTheme.colors.secondarySurface,
-                     border: `1px solid ${darkTheme.colors.logoAccent}40`
+                     backgroundColor: theme.colors.secondarySurface,
+                     border: `1px solid ${theme.colors.logoAccent}40`
                    }}
                  >
-                    <div className="w-2 h-2 rounded-full animate-bounce" style={{ backgroundColor: `${darkTheme.colors.accent}80`, animationDelay: '0ms' }} />
-                    <div className="w-2 h-2 rounded-full animate-bounce" style={{ backgroundColor: `${darkTheme.colors.accent}80`, animationDelay: '150ms' }} />
-                    <div className="w-2 h-2 rounded-full animate-bounce" style={{ backgroundColor: `${darkTheme.colors.accent}80`, animationDelay: '300ms' }} />
+                    <div className="w-2 h-2 rounded-full animate-bounce" style={{ backgroundColor: `${theme.colors.accent}80`, animationDelay: '0ms' }} />
+                    <div className="w-2 h-2 rounded-full animate-bounce" style={{ backgroundColor: `${theme.colors.accent}80`, animationDelay: '150ms' }} />
+                    <div className="w-2 h-2 rounded-full animate-bounce" style={{ backgroundColor: `${theme.colors.accent}80`, animationDelay: '300ms' }} />
                  </div>
               </div>
             )}
@@ -314,8 +315,8 @@ const AILibrarian: React.FC<AILibrarianProps> = ({ currentUser }) => {
        <div 
          className="p-3 md:p-4 rounded-b-xl md:rounded-b-2xl shadow-lg shrink-0"
          style={{ 
-           backgroundColor: darkTheme.colors.secondarySurface,
-           borderTop: `1px solid ${darkTheme.colors.logoAccent}40`
+           backgroundColor: theme.colors.secondarySurface,
+           borderTop: `1px solid ${theme.colors.logoAccent}40`
          }}
        >
           <div className="relative flex items-center gap-2">
@@ -327,10 +328,10 @@ const AILibrarian: React.FC<AILibrarianProps> = ({ currentUser }) => {
               placeholder="Ask about books, topics..."
               className="w-full rounded-lg md:rounded-xl px-3 md:px-4 py-2.5 md:py-3 pr-12 text-sm focus:outline-none focus:ring-2 transition-all"
               style={{ 
-                backgroundColor: darkTheme.colors.primaryBg,
-                border: `1px solid ${darkTheme.colors.logoAccent}`,
-                color: darkTheme.colors.primaryText,
-                '--tw-ring-color': darkTheme.colors.accent
+                backgroundColor: theme.colors.primaryBg,
+                border: `1px solid ${theme.colors.logoAccent}`,
+                color: theme.colors.primaryText,
+                '--tw-ring-color': theme.colors.accent
               } as React.CSSProperties}
             />
             <button 
@@ -338,7 +339,7 @@ const AILibrarian: React.FC<AILibrarianProps> = ({ currentUser }) => {
               disabled={!input.trim() || isThinking}
               className="absolute right-2 p-2 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               style={{ 
-                backgroundColor: darkTheme.colors.accent,
+                backgroundColor: theme.colors.accent,
                 color: '#ffffff'
               }}
             >
@@ -351,3 +352,4 @@ const AILibrarian: React.FC<AILibrarianProps> = ({ currentUser }) => {
 };
 
 export default AILibrarian;
+

@@ -17,7 +17,7 @@ import { Book, Loan, User } from './types';
 import { authService } from './services/authService';
 import { IconSize, ViewLayout, preferencesService } from './services/preferencesService';
 import { useTheme } from './contexts/ThemeContext';
-import { darkTheme } from './constants/darkTheme';
+import { useAppTheme } from './hooks/useAppTheme';
 import { Search, Filter, SortAsc, SortDesc, Sparkles, TrendingUp, Calendar } from 'lucide-react';
 
 const API_URL = import.meta.env.VITE_API_URL || '/api';
@@ -87,6 +87,7 @@ const App: React.FC = () => {
   const [iconSize, setIconSize] = useState<IconSize>(() => preferencesService.getPreferences().iconSize);
   const [viewLayout, setViewLayout] = useState<ViewLayout>(() => preferencesService.getPreferences().viewLayout);
   const { themeMode, themeColor, setThemeMode, setThemeColor } = useTheme();
+  const theme = useAppTheme();
 
   // Track last recorded search to avoid duplicates
   const lastRecordedSearch = React.useRef<string>('');
@@ -311,11 +312,11 @@ const App: React.FC = () => {
   // Loading state
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: darkTheme.colors.primaryBg }}>
+      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: theme.colors.primaryBg }}>
         <div className="flex flex-col items-center gap-4">
           <img src="/assets/logo-icon.png" alt="DRIZAIKN" className="h-16 w-16 animate-pulse" />
-          <div className="h-10 w-10 border-4 rounded-full animate-spin" style={{ borderColor: `${darkTheme.colors.logoAccent}40`, borderTopColor: darkTheme.colors.accent }} />
-          <p className="text-sm font-medium animate-pulse" style={{ color: darkTheme.colors.accent }}>Loading Drizaikn...</p>
+          <div className="h-10 w-10 border-4 rounded-full animate-spin" style={{ borderColor: `${theme.colors.logoAccent}40`, borderTopColor: theme.colors.accent }} />
+          <p className="text-sm font-medium animate-pulse" style={{ color: theme.colors.accent }}>Loading Drizaikn...</p>
         </div>
       </div>
     );
@@ -324,7 +325,7 @@ const App: React.FC = () => {
   // Not authenticated - show login/register
   if (!isAuthenticated) {
     return (
-      <div className="min-h-screen" style={{ backgroundColor: darkTheme.colors.primaryBg }}>
+      <div className="min-h-screen" style={{ backgroundColor: theme.colors.primaryBg }}>
         {error && (
           <div className="fixed top-4 right-4 left-4 md:left-auto px-4 py-3 rounded-xl shadow-lg z-50 animate-fade-in-up backdrop-blur-sm"
             style={{ backgroundColor: '#ef4444', color: '#fff' }}>
@@ -345,7 +346,7 @@ const App: React.FC = () => {
 
   // Main authenticated view
   return (
-    <div className="min-h-screen flex flex-col" style={{ backgroundColor: darkTheme.colors.primaryBg }}>
+    <div className="min-h-screen flex flex-col" style={{ backgroundColor: theme.colors.primaryBg }}>
       <Navbar 
         currentView={currentView} 
         setCurrentView={setCurrentView} 
@@ -392,20 +393,20 @@ const App: React.FC = () => {
         {currentView === 'browse' && (
           <div className="max-w-7xl mx-auto animate-fade-in-up">
             {/* User Info Card */}
-            <div className="p-4 rounded-2xl mb-6" style={{ backgroundColor: darkTheme.colors.secondarySurface, border: `1px solid ${darkTheme.colors.logoAccent}30` }}>
+            <div className="p-4 rounded-2xl mb-6" style={{ backgroundColor: theme.colors.secondarySurface, border: `1px solid ${theme.colors.logoAccent}30` }}>
               <div className="flex items-center gap-3 md:gap-4">
                 <div className="relative">
-                  <img src={user!.avatarUrl} alt={user!.name} className="w-14 h-14 md:w-16 md:h-16 rounded-2xl object-cover" style={{ border: `2px solid ${darkTheme.colors.logoAccent}` }} />
-                  <div className="absolute -bottom-1 -right-1 h-4 w-4 bg-emerald-500 rounded-full" style={{ border: `2px solid ${darkTheme.colors.primaryBg}` }}></div>
+                  <img src={user!.avatarUrl} alt={user!.name} className="w-14 h-14 md:w-16 md:h-16 rounded-2xl object-cover" style={{ border: `2px solid ${theme.colors.logoAccent}` }} />
+                  <div className="absolute -bottom-1 -right-1 h-4 w-4 bg-emerald-500 rounded-full" style={{ border: `2px solid ${theme.colors.primaryBg}` }}></div>
                 </div>
                 <div className="flex-1 min-w-0">
-                  <h3 className="text-base md:text-lg font-bold truncate" style={{ color: darkTheme.colors.primaryText }}>{user!.name}</h3>
-                  <p className="text-xs md:text-sm truncate" style={{ color: darkTheme.colors.mutedText }}>{user!.email || 'No email provided'}</p>
+                  <h3 className="text-base md:text-lg font-bold truncate" style={{ color: theme.colors.primaryText }}>{user!.name}</h3>
+                  <p className="text-xs md:text-sm truncate" style={{ color: theme.colors.mutedText }}>{user!.email || 'No email provided'}</p>
                   <div className="flex items-center gap-2 mt-1.5 flex-wrap">
-                    <span className="text-[10px] md:text-xs font-mono px-2 py-0.5 rounded-lg truncate max-w-[150px] md:max-w-none" style={{ backgroundColor: darkTheme.colors.primaryBg, color: darkTheme.colors.mutedText }}>
+                    <span className="text-[10px] md:text-xs font-mono px-2 py-0.5 rounded-lg truncate max-w-[150px] md:max-w-none" style={{ backgroundColor: theme.colors.primaryBg, color: theme.colors.mutedText }}>
                       {user!.role === 'Student' ? user!.admissionNo : `Staff ID: ${user!.admissionNo}`}
                     </span>
-                    <span className="text-xs px-2 py-0.5 rounded-full font-medium" style={{ backgroundColor: `${darkTheme.colors.accent}20`, color: darkTheme.colors.accent }}>{user!.role}</span>
+                    <span className="text-xs px-2 py-0.5 rounded-full font-medium" style={{ backgroundColor: `${theme.colors.accent}20`, color: theme.colors.accent }}>{user!.role}</span>
                   </div>
                 </div>
               </div>
@@ -413,8 +414,8 @@ const App: React.FC = () => {
 
             {/* Header */}
             <header className="mb-6 md:mb-8">
-              <h2 className="text-2xl md:text-3xl font-bold mb-2" style={{ color: darkTheme.colors.primaryText }}>Discover Knowledge</h2>
-              <p className="text-sm md:text-base" style={{ color: darkTheme.colors.mutedText }}>Explore our curated collection of academic resources.</p>
+              <h2 className="text-2xl md:text-3xl font-bold mb-2" style={{ color: theme.colors.primaryText }}>Discover Knowledge</h2>
+              <p className="text-sm md:text-base" style={{ color: theme.colors.mutedText }}>Explore our curated collection of academic resources.</p>
             </header>
 
             {/* Recommended Books Section */}
@@ -422,8 +423,8 @@ const App: React.FC = () => {
               <div className="mb-6 md:mb-8">
                 <div className="flex flex-wrap items-center gap-2 mb-4">
                   <Sparkles size={20} style={{ color: '#fbbf24' }} />
-                  <h3 className="text-lg md:text-xl font-semibold" style={{ color: darkTheme.colors.primaryText }}>Recommended for You</h3>
-                  <span className="text-xs md:text-sm" style={{ color: darkTheme.colors.mutedText }}>Based on your course</span>
+                  <h3 className="text-lg md:text-xl font-semibold" style={{ color: theme.colors.primaryText }}>Recommended for You</h3>
+                  <span className="text-xs md:text-sm" style={{ color: theme.colors.mutedText }}>Based on your course</span>
                 </div>
                 <div className="flex gap-3 md:gap-4 overflow-x-auto pb-4 scrollbar-hide -mx-4 px-4 md:mx-0 md:px-0 snap-x snap-mandatory">
                   {recommendedBooks.slice(0, 6).map((book: Book, index: number) => (
@@ -436,27 +437,27 @@ const App: React.FC = () => {
             )}
 
             {/* Search and Filter Bar */}
-            <div className="p-3 md:p-4 rounded-2xl mb-6 space-y-3 md:space-y-4" style={{ backgroundColor: darkTheme.colors.secondarySurface, border: `1px solid ${darkTheme.colors.logoAccent}30` }}>
+            <div className="p-3 md:p-4 rounded-2xl mb-6 space-y-3 md:space-y-4" style={{ backgroundColor: theme.colors.secondarySurface, border: `1px solid ${theme.colors.logoAccent}30` }}>
               <div className="flex flex-col gap-3 md:gap-4">
                 <div className="relative w-full">
-                  <Search className="absolute left-3 md:left-4 top-1/2 -translate-y-1/2" size={18} style={{ color: darkTheme.colors.mutedText }} />
+                  <Search className="absolute left-3 md:left-4 top-1/2 -translate-y-1/2" size={18} style={{ color: theme.colors.mutedText }} />
                   <input
                     type="text" placeholder="Search by title or author..." value={searchQuery}
                     onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchQuery(e.target.value)}
                     className="w-full pl-10 md:pl-12 pr-4 py-3 md:py-3.5 text-sm md:text-base rounded-xl focus:outline-none focus:ring-2 transition-all"
-                    style={{ backgroundColor: darkTheme.colors.primaryBg, border: `1px solid ${darkTheme.colors.logoAccent}50`, color: darkTheme.colors.primaryText }}
+                    style={{ backgroundColor: theme.colors.primaryBg, border: `1px solid ${theme.colors.logoAccent}50`, color: theme.colors.primaryText }}
                   />
                 </div>
                 <div className="flex items-center gap-2 w-full">
-                  <Filter size={16} className="hidden sm:block" style={{ color: darkTheme.colors.mutedText }} />
+                  <Filter size={16} className="hidden sm:block" style={{ color: theme.colors.mutedText }} />
                   <select value={selectedCategory} onChange={(e) => setSelectedCategory(e.target.value)}
                     className="flex-1 px-3 md:px-4 py-3 md:py-3.5 text-sm rounded-xl focus:outline-none transition-all appearance-none cursor-pointer"
-                    style={{ backgroundColor: darkTheme.colors.primaryBg, border: `1px solid ${darkTheme.colors.logoAccent}50`, color: darkTheme.colors.primaryText }}>
+                    style={{ backgroundColor: theme.colors.primaryBg, border: `1px solid ${theme.colors.logoAccent}50`, color: theme.colors.primaryText }}>
                     {categories.map((cat: string) => (<option key={cat} value={cat}>{cat}</option>))}
                   </select>
                   <button onClick={() => setShowFilters(!showFilters)}
                     className="px-3 md:px-4 py-2.5 md:py-3 rounded-lg md:rounded-xl transition-all text-sm whitespace-nowrap"
-                    style={{ backgroundColor: showFilters ? darkTheme.colors.accent : darkTheme.colors.primaryBg, color: showFilters ? darkTheme.colors.primaryBg : darkTheme.colors.mutedText, border: `1px solid ${darkTheme.colors.logoAccent}50` }}>
+                    style={{ backgroundColor: showFilters ? theme.colors.accent : theme.colors.primaryBg, color: showFilters ? theme.colors.primaryBg : theme.colors.mutedText, border: `1px solid ${theme.colors.logoAccent}50` }}>
                     <span className="hidden sm:inline">More </span>Filters
                   </button>
                 </div>
@@ -464,12 +465,12 @@ const App: React.FC = () => {
 
               {/* Advanced Filters */}
               {showFilters && (
-                <div className="flex flex-col sm:flex-row flex-wrap gap-3 items-start sm:items-center pt-3 md:pt-4" style={{ borderTop: `1px solid ${darkTheme.colors.logoAccent}30` }}>
+                <div className="flex flex-col sm:flex-row flex-wrap gap-3 items-start sm:items-center pt-3 md:pt-4" style={{ borderTop: `1px solid ${theme.colors.logoAccent}30` }}>
                   <div className="flex items-center gap-2 w-full sm:w-auto">
-                    <span className="text-sm" style={{ color: darkTheme.colors.mutedText }}>Status:</span>
+                    <span className="text-sm" style={{ color: theme.colors.mutedText }}>Status:</span>
                     <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}
                       className="flex-1 sm:flex-none px-3 py-1.5 text-sm rounded-lg focus:outline-none"
-                      style={{ backgroundColor: darkTheme.colors.primaryBg, border: `1px solid ${darkTheme.colors.logoAccent}50`, color: darkTheme.colors.primaryText }}>
+                      style={{ backgroundColor: theme.colors.primaryBg, border: `1px solid ${theme.colors.logoAccent}50`, color: theme.colors.primaryText }}>
                       <option value="All">All</option>
                       <option value="AVAILABLE">Available</option>
                       <option value="BORROWED">Borrowed</option>
@@ -477,10 +478,10 @@ const App: React.FC = () => {
                     </select>
                   </div>
                   <div className="flex items-center gap-2 w-full sm:w-auto sm:ml-auto">
-                    <span className="text-sm" style={{ color: darkTheme.colors.mutedText }}>Sort:</span>
+                    <span className="text-sm" style={{ color: theme.colors.mutedText }}>Sort:</span>
                     <select value={sortField} onChange={(e) => setSortField(e.target.value as SortField)}
                       className="flex-1 sm:flex-none px-3 py-1.5 text-sm rounded-lg focus:outline-none"
-                      style={{ backgroundColor: darkTheme.colors.primaryBg, border: `1px solid ${darkTheme.colors.logoAccent}50`, color: darkTheme.colors.primaryText }}>
+                      style={{ backgroundColor: theme.colors.primaryBg, border: `1px solid ${theme.colors.logoAccent}50`, color: theme.colors.primaryText }}>
                       <option value="popularity">Popularity</option>
                       <option value="title">Title</option>
                       <option value="author">Author</option>
@@ -488,7 +489,7 @@ const App: React.FC = () => {
                       <option value="newest">Recently Added</option>
                     </select>
                     <button onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
-                      className="p-1.5 rounded-lg" style={{ backgroundColor: darkTheme.colors.primaryBg, border: `1px solid ${darkTheme.colors.logoAccent}50`, color: darkTheme.colors.mutedText }}>
+                      className="p-1.5 rounded-lg" style={{ backgroundColor: theme.colors.primaryBg, border: `1px solid ${theme.colors.logoAccent}50`, color: theme.colors.mutedText }}>
                       {sortOrder === 'asc' ? <SortAsc size={18} /> : <SortDesc size={18} />}
                     </button>
                   </div>
@@ -500,17 +501,17 @@ const App: React.FC = () => {
             <div className="flex flex-wrap gap-2 mb-4 md:mb-6">
               <button onClick={() => { setSortField('popularity'); setSortOrder('desc'); }}
                 className="flex items-center gap-1.5 px-2.5 md:px-3 py-1 md:py-1.5 rounded-full text-xs md:text-sm transition-all"
-                style={{ backgroundColor: sortField === 'popularity' ? darkTheme.colors.accent : darkTheme.colors.secondarySurface, color: sortField === 'popularity' ? darkTheme.colors.primaryBg : darkTheme.colors.mutedText, border: `1px solid ${darkTheme.colors.logoAccent}30` }}>
+                style={{ backgroundColor: sortField === 'popularity' ? theme.colors.accent : theme.colors.secondarySurface, color: sortField === 'popularity' ? theme.colors.primaryBg : theme.colors.mutedText, border: `1px solid ${theme.colors.logoAccent}30` }}>
                 <TrendingUp size={12} />Popular
               </button>
               <button onClick={() => { setSortField('newest'); setSortOrder('desc'); }}
                 className="flex items-center gap-1.5 px-2.5 md:px-3 py-1 md:py-1.5 rounded-full text-xs md:text-sm transition-all"
-                style={{ backgroundColor: sortField === 'newest' ? darkTheme.colors.accent : darkTheme.colors.secondarySurface, color: sortField === 'newest' ? darkTheme.colors.primaryBg : darkTheme.colors.mutedText, border: `1px solid ${darkTheme.colors.logoAccent}30` }}>
+                style={{ backgroundColor: sortField === 'newest' ? theme.colors.accent : theme.colors.secondarySurface, color: sortField === 'newest' ? theme.colors.primaryBg : theme.colors.mutedText, border: `1px solid ${theme.colors.logoAccent}30` }}>
                 <Calendar size={12} />New
               </button>
               <button onClick={() => setStatusFilter(statusFilter === 'AVAILABLE' ? 'All' : 'AVAILABLE')}
                 className="flex items-center gap-1.5 px-2.5 md:px-3 py-1 md:py-1.5 rounded-full text-xs md:text-sm transition-all"
-                style={{ backgroundColor: statusFilter === 'AVAILABLE' ? '#22c55e' : darkTheme.colors.secondarySurface, color: statusFilter === 'AVAILABLE' ? '#fff' : darkTheme.colors.mutedText, border: `1px solid ${darkTheme.colors.logoAccent}30` }}>
+                style={{ backgroundColor: statusFilter === 'AVAILABLE' ? '#22c55e' : theme.colors.secondarySurface, color: statusFilter === 'AVAILABLE' ? '#fff' : theme.colors.mutedText, border: `1px solid ${theme.colors.logoAccent}30` }}>
                 Available
               </button>
             </div>
@@ -521,7 +522,7 @@ const App: React.FC = () => {
               onThemeModeChange={setThemeMode} onThemeColorChange={setThemeColor} />
 
             {/* Results Count */}
-            <div className="mb-4 text-xs md:text-sm" style={{ color: darkTheme.colors.mutedText }}>
+            <div className="mb-4 text-xs md:text-sm" style={{ color: theme.colors.mutedText }}>
               Showing {filteredBooks.length} of {books.length} books
             </div>
 
@@ -539,7 +540,7 @@ const App: React.FC = () => {
 
             {filteredBooks.length === 0 && (
               <div className="text-center py-12 md:py-16">
-                <p className="text-base md:text-lg" style={{ color: darkTheme.colors.mutedText }}>
+                <p className="text-base md:text-lg" style={{ color: theme.colors.mutedText }}>
                   {books.length === 0 ? 'Loading books...' : 'No books found matching your criteria.'}
                 </p>
               </div>
@@ -558,3 +559,4 @@ const App: React.FC = () => {
 };
 
 export default App;
+

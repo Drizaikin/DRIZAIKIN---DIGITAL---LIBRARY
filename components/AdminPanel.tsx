@@ -9,7 +9,7 @@ import {
 import { authService } from '../services/authService';
 import LiveTimer from './LiveTimer';
 import ExtractionPanel from './ExtractionPanel';
-import { darkTheme } from '../constants/darkTheme';
+import { useAppTheme } from '../hooks/useAppTheme';
 
 // Use environment variable or relative path for Vercel deployment
 const API_URL = import.meta.env.VITE_API_URL || '/api';
@@ -60,6 +60,7 @@ type SortOrder = 'asc' | 'desc';
 type AdminTab = 'books' | 'users' | 'requests' | 'loans' | 'extractions';
 
 const AdminPanel: React.FC = () => {
+  const theme = useAppTheme();
   const [activeTab, setActiveTab] = useState<AdminTab>('books');
   const [books, setBooks] = useState<BookWithDetails[]>([]);
   const [users, setUsers] = useState<SystemUser[]>([]);
@@ -479,8 +480,8 @@ const AdminPanel: React.FC = () => {
         <div 
           className="h-8 w-8 border-4 rounded-full animate-spin"
           style={{ 
-            borderColor: `${darkTheme.colors.accent}30`,
-            borderTopColor: darkTheme.colors.accent 
+            borderColor: `${theme.colors.accent}30`,
+            borderTopColor: theme.colors.accent 
           }} 
         />
       </div>
@@ -492,13 +493,13 @@ const AdminPanel: React.FC = () => {
       <header className="mb-6 md:mb-8">
         <h2 
           className="text-2xl md:text-3xl font-serif font-bold mb-2"
-          style={{ color: darkTheme.colors.accent }}
+          style={{ color: theme.colors.accent }}
         >
           Admin Panel
         </h2>
         <p 
           className="text-sm md:text-base"
-          style={{ color: darkTheme.colors.mutedText }}
+          style={{ color: theme.colors.mutedText }}
         >
           Manage book inventory, users, and library resources.
         </p>
@@ -510,15 +511,15 @@ const AdminPanel: React.FC = () => {
           onClick={() => setShowMobileMenu(!showMobileMenu)}
           className="w-full flex items-center justify-between px-4 py-3 rounded-lg shadow-sm"
           style={{ 
-            backgroundColor: darkTheme.colors.secondarySurface,
-            border: `1px solid ${darkTheme.colors.logoAccent}40`
+            backgroundColor: theme.colors.secondarySurface,
+            border: `1px solid ${theme.colors.logoAccent}40`
           }}
           aria-expanded={showMobileMenu}
           aria-haspopup="true"
         >
           <span 
             className="flex items-center gap-2 font-medium"
-            style={{ color: darkTheme.colors.accent }}
+            style={{ color: theme.colors.accent }}
           >
             {activeTab === 'books' && <><BookOpen size={18} /> Books Management</>}
             {activeTab === 'users' && <><UserCog size={18} /> User Management</>}
@@ -538,7 +539,7 @@ const AdminPanel: React.FC = () => {
                 {activeLoans.length > 0 && (
                   <span 
                     className="text-xs font-bold rounded-full px-2 py-0.5"
-                    style={{ backgroundColor: `${darkTheme.colors.accent}20`, color: darkTheme.colors.accent }}
+                    style={{ backgroundColor: `${theme.colors.accent}20`, color: theme.colors.accent }}
                   >
                     {activeLoans.length}
                   </span>
@@ -550,7 +551,7 @@ const AdminPanel: React.FC = () => {
           <Menu 
             size={20} 
             className={`transition-transform ${showMobileMenu ? 'rotate-90' : ''}`}
-            style={{ color: darkTheme.colors.mutedText }}
+            style={{ color: theme.colors.mutedText }}
           />
         </button>
 
@@ -559,16 +560,16 @@ const AdminPanel: React.FC = () => {
           <div 
             className="absolute left-4 right-4 mt-1 rounded-lg shadow-lg z-40 overflow-hidden"
             style={{ 
-              backgroundColor: darkTheme.colors.secondarySurface,
-              border: `1px solid ${darkTheme.colors.logoAccent}40`
+              backgroundColor: theme.colors.secondarySurface,
+              border: `1px solid ${theme.colors.logoAccent}40`
             }}
           >
             <button
               onClick={() => handleTabChange('books')}
               className="w-full flex items-center gap-2 px-4 py-3 text-left transition-colors"
               style={{ 
-                backgroundColor: activeTab === 'books' ? `${darkTheme.colors.accent}15` : 'transparent',
-                color: activeTab === 'books' ? darkTheme.colors.accent : darkTheme.colors.primaryText
+                backgroundColor: activeTab === 'books' ? `${theme.colors.accent}15` : 'transparent',
+                color: activeTab === 'books' ? theme.colors.accent : theme.colors.primaryText
               }}
             >
               <BookOpen size={18} />
@@ -578,8 +579,8 @@ const AdminPanel: React.FC = () => {
               onClick={() => handleTabChange('users')}
               className="w-full flex items-center gap-2 px-4 py-3 text-left transition-colors"
               style={{ 
-                backgroundColor: activeTab === 'users' ? `${darkTheme.colors.accent}15` : 'transparent',
-                color: activeTab === 'users' ? darkTheme.colors.accent : darkTheme.colors.primaryText
+                backgroundColor: activeTab === 'users' ? `${theme.colors.accent}15` : 'transparent',
+                color: activeTab === 'users' ? theme.colors.accent : theme.colors.primaryText
               }}
             >
               <UserCog size={18} />
@@ -589,8 +590,8 @@ const AdminPanel: React.FC = () => {
               onClick={() => handleTabChange('requests')}
               className="w-full flex items-center justify-between px-4 py-3 text-left transition-colors"
               style={{ 
-                backgroundColor: activeTab === 'requests' ? `${darkTheme.colors.accent}15` : 'transparent',
-                color: activeTab === 'requests' ? darkTheme.colors.accent : darkTheme.colors.primaryText
+                backgroundColor: activeTab === 'requests' ? `${theme.colors.accent}15` : 'transparent',
+                color: activeTab === 'requests' ? theme.colors.accent : theme.colors.primaryText
               }}
             >
               <span className="flex items-center gap-2">
@@ -607,8 +608,8 @@ const AdminPanel: React.FC = () => {
               onClick={() => handleTabChange('loans')}
               className="w-full flex items-center justify-between px-4 py-3 text-left transition-colors"
               style={{ 
-                backgroundColor: activeTab === 'loans' ? `${darkTheme.colors.accent}15` : 'transparent',
-                color: activeTab === 'loans' ? darkTheme.colors.accent : darkTheme.colors.primaryText
+                backgroundColor: activeTab === 'loans' ? `${theme.colors.accent}15` : 'transparent',
+                color: activeTab === 'loans' ? theme.colors.accent : theme.colors.primaryText
               }}
             >
               <span className="flex items-center gap-2">
@@ -618,7 +619,7 @@ const AdminPanel: React.FC = () => {
               {activeLoans.length > 0 && (
                 <span 
                   className="text-xs font-bold rounded-full px-2 py-0.5"
-                  style={{ backgroundColor: `${darkTheme.colors.accent}20`, color: darkTheme.colors.accent }}
+                  style={{ backgroundColor: `${theme.colors.accent}20`, color: theme.colors.accent }}
                 >
                   {activeLoans.length}
                 </span>
@@ -628,8 +629,8 @@ const AdminPanel: React.FC = () => {
               onClick={() => handleTabChange('extractions')}
               className="w-full flex items-center gap-2 px-4 py-3 text-left transition-colors"
               style={{ 
-                backgroundColor: activeTab === 'extractions' ? `${darkTheme.colors.accent}15` : 'transparent',
-                color: activeTab === 'extractions' ? darkTheme.colors.accent : darkTheme.colors.primaryText
+                backgroundColor: activeTab === 'extractions' ? `${theme.colors.accent}15` : 'transparent',
+                color: activeTab === 'extractions' ? theme.colors.accent : theme.colors.primaryText
               }}
             >
               <Download size={18} />
@@ -647,11 +648,11 @@ const AdminPanel: React.FC = () => {
             onClick={() => scrollTabs('left')}
             className="absolute left-0 top-0 bottom-0 z-10 px-2 flex items-center"
             style={{ 
-              background: `linear-gradient(to right, ${darkTheme.colors.primaryBg}, ${darkTheme.colors.primaryBg}, transparent)`
+              background: `linear-gradient(to right, ${theme.colors.primaryBg}, ${theme.colors.primaryBg}, transparent)`
             }}
             aria-label="Scroll tabs left"
           >
-            <ChevronLeft size={20} style={{ color: darkTheme.colors.mutedText }} />
+            <ChevronLeft size={20} style={{ color: theme.colors.mutedText }} />
           </button>
         )}
 
@@ -662,15 +663,15 @@ const AdminPanel: React.FC = () => {
           style={{ 
             scrollbarWidth: 'none', 
             msOverflowStyle: 'none',
-            borderBottom: `1px solid ${darkTheme.colors.logoAccent}40`
+            borderBottom: `1px solid ${theme.colors.logoAccent}40`
           }}
         >
           <button
             onClick={() => setActiveTab('books')}
             className="flex items-center gap-2 px-4 py-3 font-medium transition-all whitespace-nowrap"
             style={{ 
-              color: activeTab === 'books' ? darkTheme.colors.accent : darkTheme.colors.mutedText,
-              borderBottom: activeTab === 'books' ? `2px solid ${darkTheme.colors.accent}` : '2px solid transparent'
+              color: activeTab === 'books' ? theme.colors.accent : theme.colors.mutedText,
+              borderBottom: activeTab === 'books' ? `2px solid ${theme.colors.accent}` : '2px solid transparent'
             }}
           >
             <BookOpen size={18} />
@@ -680,8 +681,8 @@ const AdminPanel: React.FC = () => {
             onClick={() => setActiveTab('users')}
             className="flex items-center gap-2 px-4 py-3 font-medium transition-all whitespace-nowrap"
             style={{ 
-              color: activeTab === 'users' ? darkTheme.colors.accent : darkTheme.colors.mutedText,
-              borderBottom: activeTab === 'users' ? `2px solid ${darkTheme.colors.accent}` : '2px solid transparent'
+              color: activeTab === 'users' ? theme.colors.accent : theme.colors.mutedText,
+              borderBottom: activeTab === 'users' ? `2px solid ${theme.colors.accent}` : '2px solid transparent'
             }}
           >
             <UserCog size={18} />
@@ -691,8 +692,8 @@ const AdminPanel: React.FC = () => {
             onClick={() => setActiveTab('requests')}
             className="flex items-center gap-2 px-4 py-3 font-medium transition-all relative whitespace-nowrap"
             style={{ 
-              color: activeTab === 'requests' ? darkTheme.colors.accent : darkTheme.colors.mutedText,
-              borderBottom: activeTab === 'requests' ? `2px solid ${darkTheme.colors.accent}` : '2px solid transparent'
+              color: activeTab === 'requests' ? theme.colors.accent : theme.colors.mutedText,
+              borderBottom: activeTab === 'requests' ? `2px solid ${theme.colors.accent}` : '2px solid transparent'
             }}
           >
             <ClipboardList size={18} />
@@ -707,8 +708,8 @@ const AdminPanel: React.FC = () => {
             onClick={() => setActiveTab('loans')}
             className="flex items-center gap-2 px-4 py-3 font-medium transition-all relative whitespace-nowrap"
             style={{ 
-              color: activeTab === 'loans' ? darkTheme.colors.accent : darkTheme.colors.mutedText,
-              borderBottom: activeTab === 'loans' ? `2px solid ${darkTheme.colors.accent}` : '2px solid transparent'
+              color: activeTab === 'loans' ? theme.colors.accent : theme.colors.mutedText,
+              borderBottom: activeTab === 'loans' ? `2px solid ${theme.colors.accent}` : '2px solid transparent'
             }}
           >
             <Clock size={18} />
@@ -716,7 +717,7 @@ const AdminPanel: React.FC = () => {
             {activeLoans.length > 0 && (
               <span 
                 className="text-xs font-bold rounded-full px-2 py-0.5 ml-1"
-                style={{ backgroundColor: `${darkTheme.colors.accent}20`, color: darkTheme.colors.accent }}
+                style={{ backgroundColor: `${theme.colors.accent}20`, color: theme.colors.accent }}
               >
                 {activeLoans.length}
               </span>
@@ -726,8 +727,8 @@ const AdminPanel: React.FC = () => {
             onClick={() => setActiveTab('extractions')}
             className="flex items-center gap-2 px-4 py-3 font-medium transition-all whitespace-nowrap"
             style={{ 
-              color: activeTab === 'extractions' ? darkTheme.colors.accent : darkTheme.colors.mutedText,
-              borderBottom: activeTab === 'extractions' ? `2px solid ${darkTheme.colors.accent}` : '2px solid transparent'
+              color: activeTab === 'extractions' ? theme.colors.accent : theme.colors.mutedText,
+              borderBottom: activeTab === 'extractions' ? `2px solid ${theme.colors.accent}` : '2px solid transparent'
             }}
           >
             <Download size={18} />
@@ -741,11 +742,11 @@ const AdminPanel: React.FC = () => {
             onClick={() => scrollTabs('right')}
             className="absolute right-0 top-0 bottom-0 z-10 px-2 flex items-center"
             style={{ 
-              background: `linear-gradient(to left, ${darkTheme.colors.primaryBg}, ${darkTheme.colors.primaryBg}, transparent)`
+              background: `linear-gradient(to left, ${theme.colors.primaryBg}, ${theme.colors.primaryBg}, transparent)`
             }}
             aria-label="Scroll tabs right"
           >
-            <ChevronRight size={20} style={{ color: darkTheme.colors.mutedText }} />
+            <ChevronRight size={20} style={{ color: theme.colors.mutedText }} />
           </button>
         )}
       </div>
@@ -769,8 +770,8 @@ const AdminPanel: React.FC = () => {
           <div 
             className="p-3 md:p-4 rounded-xl mb-6 space-y-3 md:space-y-4"
             style={{ 
-              backgroundColor: darkTheme.colors.secondarySurface,
-              border: `1px solid ${darkTheme.colors.logoAccent}40`
+              backgroundColor: theme.colors.secondarySurface,
+              border: `1px solid ${theme.colors.logoAccent}40`
             }}
           >
             <div className="flex flex-col gap-3 md:gap-4">
@@ -778,7 +779,7 @@ const AdminPanel: React.FC = () => {
                 <Search 
                   className="absolute left-3 top-1/2 -translate-y-1/2" 
                   size={16}
-                  style={{ color: darkTheme.colors.mutedText }}
+                  style={{ color: theme.colors.mutedText }}
                 />
                 <input
                   type="text"
@@ -787,17 +788,17 @@ const AdminPanel: React.FC = () => {
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="w-full pl-9 pr-4 py-2 text-sm rounded-lg focus:outline-none focus:ring-2"
                   style={{ 
-                    backgroundColor: darkTheme.colors.primaryBg,
-                    border: `1px solid ${darkTheme.colors.logoAccent}40`,
-                    color: darkTheme.colors.primaryText,
-                    '--tw-ring-color': `${darkTheme.colors.accent}40`
+                    backgroundColor: theme.colors.primaryBg,
+                    border: `1px solid ${theme.colors.logoAccent}40`,
+                    color: theme.colors.primaryText,
+                    '--tw-ring-color': `${theme.colors.accent}40`
                   } as React.CSSProperties}
                 />
               </div>
               <button
                 onClick={() => setShowAddForm(true)}
                 className="flex items-center justify-center gap-2 px-4 py-2 text-white text-sm rounded-lg transition-colors whitespace-nowrap w-full md:w-auto"
-                style={{ backgroundColor: darkTheme.colors.accent }}
+                style={{ backgroundColor: theme.colors.accent }}
               >
                 <Plus size={16} />
                 Add New Book
@@ -806,11 +807,11 @@ const AdminPanel: React.FC = () => {
 
             <div 
               className="flex flex-col sm:flex-row flex-wrap gap-2 md:gap-3 items-start sm:items-center pt-3"
-              style={{ borderTop: `1px solid ${darkTheme.colors.logoAccent}30` }}
+              style={{ borderTop: `1px solid ${theme.colors.logoAccent}30` }}
             >
               <div className="flex items-center gap-2 w-full sm:w-auto">
-                <Filter size={14} className="hidden sm:block" style={{ color: darkTheme.colors.mutedText }} />
-                <span className="text-xs" style={{ color: darkTheme.colors.mutedText }}>Filters:</span>
+                <Filter size={14} className="hidden sm:block" style={{ color: theme.colors.mutedText }} />
+                <span className="text-xs" style={{ color: theme.colors.mutedText }}>Filters:</span>
               </div>
               
               <div className="flex flex-wrap gap-2 w-full sm:w-auto">
@@ -819,9 +820,9 @@ const AdminPanel: React.FC = () => {
                   onChange={(e) => setSelectedCategory(e.target.value)}
                   className="flex-1 sm:flex-none px-2 py-1.5 text-xs rounded-lg focus:outline-none focus:ring-2"
                   style={{ 
-                    backgroundColor: darkTheme.colors.primaryBg,
-                    border: `1px solid ${darkTheme.colors.logoAccent}40`,
-                    color: darkTheme.colors.primaryText
+                    backgroundColor: theme.colors.primaryBg,
+                    border: `1px solid ${theme.colors.logoAccent}40`,
+                    color: theme.colors.primaryText
                   }}
                 >
                   <option value="All">All Categories</option>
@@ -835,9 +836,9 @@ const AdminPanel: React.FC = () => {
                   onChange={(e) => setStatusFilter(e.target.value)}
                   className="flex-1 sm:flex-none px-2 py-1.5 text-xs rounded-lg focus:outline-none focus:ring-2"
                   style={{ 
-                    backgroundColor: darkTheme.colors.primaryBg,
-                    border: `1px solid ${darkTheme.colors.logoAccent}40`,
-                    color: darkTheme.colors.primaryText
+                    backgroundColor: theme.colors.primaryBg,
+                    border: `1px solid ${theme.colors.logoAccent}40`,
+                    color: theme.colors.primaryText
                   }}
                 >
                   <option value="All">All Status</option>
@@ -848,15 +849,15 @@ const AdminPanel: React.FC = () => {
               </div>
 
               <div className="flex items-center gap-2 w-full sm:w-auto sm:ml-auto">
-                <span className="text-xs" style={{ color: darkTheme.colors.mutedText }}>Sort:</span>
+                <span className="text-xs" style={{ color: theme.colors.mutedText }}>Sort:</span>
                 <select
                   value={sortField}
                   onChange={(e) => setSortField(e.target.value as SortField)}
                   className="flex-1 sm:flex-none px-2 py-1.5 text-xs rounded-lg focus:outline-none focus:ring-2"
                   style={{ 
-                    backgroundColor: darkTheme.colors.primaryBg,
-                    border: `1px solid ${darkTheme.colors.logoAccent}40`,
-                    color: darkTheme.colors.primaryText
+                    backgroundColor: theme.colors.primaryBg,
+                    border: `1px solid ${theme.colors.logoAccent}40`,
+                    color: theme.colors.primaryText
                   }}
                 >
                   <option value="title">Title</option>
@@ -869,9 +870,9 @@ const AdminPanel: React.FC = () => {
                   onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
                   className="p-1.5 rounded-lg"
                   style={{ 
-                    backgroundColor: darkTheme.colors.primaryBg,
-                    border: `1px solid ${darkTheme.colors.logoAccent}40`,
-                    color: darkTheme.colors.primaryText
+                    backgroundColor: theme.colors.primaryBg,
+                    border: `1px solid ${theme.colors.logoAccent}40`,
+                    color: theme.colors.primaryText
                   }}
                 >
                   {sortOrder === 'asc' ? <SortAsc size={16} /> : <SortDesc size={16} />}
@@ -906,21 +907,21 @@ const AdminPanel: React.FC = () => {
           <div 
             className="rounded-xl overflow-hidden hidden md:block"
             style={{ 
-              backgroundColor: darkTheme.colors.secondarySurface,
-              border: `1px solid ${darkTheme.colors.logoAccent}40`
+              backgroundColor: theme.colors.secondarySurface,
+              border: `1px solid ${theme.colors.logoAccent}40`
             }}
           >
             <div className="overflow-x-auto">
               <table className="w-full">
-                <thead style={{ backgroundColor: darkTheme.colors.primaryBg, borderBottom: `1px solid ${darkTheme.colors.logoAccent}40` }}>
+                <thead style={{ backgroundColor: theme.colors.primaryBg, borderBottom: `1px solid ${theme.colors.logoAccent}40` }}>
                   <tr>
-                    <th className="text-left px-4 py-3 text-sm font-semibold" style={{ color: darkTheme.colors.mutedText }}>Book</th>
-                    <th className="text-left px-4 py-3 text-sm font-semibold" style={{ color: darkTheme.colors.mutedText }}>Category</th>
-                    <th className="text-center px-4 py-3 text-sm font-semibold" style={{ color: darkTheme.colors.mutedText }}>Year</th>
-                    <th className="text-center px-4 py-3 text-sm font-semibold" style={{ color: darkTheme.colors.mutedText }}>Stock</th>
-                    <th className="text-center px-4 py-3 text-sm font-semibold" style={{ color: darkTheme.colors.mutedText }}>Borrowed</th>
-                    <th className="text-center px-4 py-3 text-sm font-semibold" style={{ color: darkTheme.colors.mutedText }}>Status</th>
-                    <th className="text-center px-4 py-3 text-sm font-semibold" style={{ color: darkTheme.colors.mutedText }}>Actions</th>
+                    <th className="text-left px-4 py-3 text-sm font-semibold" style={{ color: theme.colors.mutedText }}>Book</th>
+                    <th className="text-left px-4 py-3 text-sm font-semibold" style={{ color: theme.colors.mutedText }}>Category</th>
+                    <th className="text-center px-4 py-3 text-sm font-semibold" style={{ color: theme.colors.mutedText }}>Year</th>
+                    <th className="text-center px-4 py-3 text-sm font-semibold" style={{ color: theme.colors.mutedText }}>Stock</th>
+                    <th className="text-center px-4 py-3 text-sm font-semibold" style={{ color: theme.colors.mutedText }}>Borrowed</th>
+                    <th className="text-center px-4 py-3 text-sm font-semibold" style={{ color: theme.colors.mutedText }}>Status</th>
+                    <th className="text-center px-4 py-3 text-sm font-semibold" style={{ color: theme.colors.mutedText }}>Actions</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -928,7 +929,7 @@ const AdminPanel: React.FC = () => {
                     <tr 
                       key={book.id} 
                       style={{ 
-                        borderBottom: index < filteredBooks.length - 1 ? `1px solid ${darkTheme.colors.logoAccent}20` : 'none'
+                        borderBottom: index < filteredBooks.length - 1 ? `1px solid ${theme.colors.logoAccent}20` : 'none'
                       }}
                     >
                       <td className="px-4 py-3">
@@ -939,21 +940,21 @@ const AdminPanel: React.FC = () => {
                             className="w-12 h-16 object-cover rounded shadow-sm"
                           />
                           <div className="min-w-0">
-                            <p className="font-medium truncate max-w-[200px]" style={{ color: darkTheme.colors.accent }}>{book.title}</p>
-                            <p className="text-sm" style={{ color: darkTheme.colors.mutedText }}>{book.author}</p>
-                            {book.isbn && <p className="text-xs" style={{ color: darkTheme.colors.mutedText }}>ISBN: {book.isbn}</p>}
+                            <p className="font-medium truncate max-w-[200px]" style={{ color: theme.colors.accent }}>{book.title}</p>
+                            <p className="text-sm" style={{ color: theme.colors.mutedText }}>{book.author}</p>
+                            {book.isbn && <p className="text-xs" style={{ color: theme.colors.mutedText }}>ISBN: {book.isbn}</p>}
                           </div>
                         </div>
                       </td>
                       <td className="px-4 py-3">
                         <span 
                           className="text-sm px-2 py-1 rounded"
-                          style={{ backgroundColor: darkTheme.colors.primaryBg, color: darkTheme.colors.primaryText }}
+                          style={{ backgroundColor: theme.colors.primaryBg, color: theme.colors.primaryText }}
                         >
                           {book.category}
                         </span>
                       </td>
-                      <td className="px-4 py-3 text-center text-sm" style={{ color: darkTheme.colors.primaryText }}>
+                      <td className="px-4 py-3 text-center text-sm" style={{ color: theme.colors.primaryText }}>
                         {book.publishedYear || '-'}
                       </td>
                       <td className="px-4 py-3 text-center">
@@ -962,7 +963,7 @@ const AdminPanel: React.FC = () => {
                         </span>
                       </td>
                       <td className="px-4 py-3 text-center">
-                        <span className="text-sm" style={{ color: darkTheme.colors.primaryText }}>{book.borrowCount || 0}</span>
+                        <span className="text-sm" style={{ color: theme.colors.primaryText }}>{book.borrowCount || 0}</span>
                       </td>
                       <td className="px-4 py-3 text-center">
                         <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${
@@ -980,7 +981,7 @@ const AdminPanel: React.FC = () => {
                           <button
                             onClick={() => setEditingBook(book)}
                             className="p-2 rounded-lg transition-colors"
-                            style={{ color: darkTheme.colors.accent }}
+                            style={{ color: theme.colors.accent }}
                             title="Edit Book"
                           >
                             <Edit2 size={16} />
@@ -1001,7 +1002,7 @@ const AdminPanel: React.FC = () => {
             </div>
 
             {filteredBooks.length === 0 && (
-              <div className="text-center py-12" style={{ color: darkTheme.colors.mutedText }}>
+              <div className="text-center py-12" style={{ color: theme.colors.mutedText }}>
                 No books found matching your filters.
               </div>
             )}
@@ -1013,8 +1014,8 @@ const AdminPanel: React.FC = () => {
                 key={book.id} 
                 className="p-3 rounded-xl"
                 style={{ 
-                  backgroundColor: darkTheme.colors.secondarySurface,
-                  border: `1px solid ${darkTheme.colors.logoAccent}40`
+                  backgroundColor: theme.colors.secondarySurface,
+                  border: `1px solid ${theme.colors.logoAccent}40`
                 }}
               >
                 <div className="flex gap-3">
@@ -1024,12 +1025,12 @@ const AdminPanel: React.FC = () => {
                     className="w-16 h-20 object-cover rounded shadow-sm shrink-0"
                   />
                   <div className="flex-1 min-w-0">
-                    <p className="font-medium text-sm truncate" style={{ color: darkTheme.colors.accent }}>{book.title}</p>
-                    <p className="text-xs truncate" style={{ color: darkTheme.colors.mutedText }}>{book.author}</p>
+                    <p className="font-medium text-sm truncate" style={{ color: theme.colors.accent }}>{book.title}</p>
+                    <p className="text-xs truncate" style={{ color: theme.colors.mutedText }}>{book.author}</p>
                     <div className="flex flex-wrap gap-1 mt-2">
                       <span 
                         className="text-[10px] px-1.5 py-0.5 rounded"
-                        style={{ backgroundColor: darkTheme.colors.primaryBg, color: darkTheme.colors.primaryText }}
+                        style={{ backgroundColor: theme.colors.primaryBg, color: theme.colors.primaryText }}
                       >
                         {book.category}
                       </span>
@@ -1051,7 +1052,7 @@ const AdminPanel: React.FC = () => {
                         <button
                           onClick={() => setEditingBook(book)}
                           className="p-1.5 rounded"
-                          style={{ color: darkTheme.colors.accent }}
+                          style={{ color: theme.colors.accent }}
                         >
                           <Edit2 size={14} />
                         </button>
@@ -1072,8 +1073,8 @@ const AdminPanel: React.FC = () => {
               <div 
                 className="text-center py-12 rounded-xl"
                 style={{ 
-                  backgroundColor: darkTheme.colors.secondarySurface,
-                  color: darkTheme.colors.mutedText
+                  backgroundColor: theme.colors.secondarySurface,
+                  color: theme.colors.mutedText
                 }}
               >
                 No books found matching your filters.
@@ -1081,7 +1082,7 @@ const AdminPanel: React.FC = () => {
             )}
           </div>
 
-          <div className="mt-4 text-sm text-right" style={{ color: darkTheme.colors.mutedText }}>
+          <div className="mt-4 text-sm text-right" style={{ color: theme.colors.mutedText }}>
             Showing {filteredBooks.length} of {books.length} books
           </div>
         </>
@@ -1093,25 +1094,25 @@ const AdminPanel: React.FC = () => {
             <div 
               className="p-3 md:p-4 rounded-xl"
               style={{ 
-                backgroundColor: darkTheme.colors.secondarySurface,
-                border: `1px solid ${darkTheme.colors.logoAccent}40`
+                backgroundColor: theme.colors.secondarySurface,
+                border: `1px solid ${theme.colors.logoAccent}40`
               }}
             >
               <div className="flex items-center gap-2 md:gap-3">
-                <div className="p-1.5 md:p-2 rounded-lg" style={{ backgroundColor: `${darkTheme.colors.accent}20` }}>
-                  <Users size={16} style={{ color: darkTheme.colors.accent }} />
+                <div className="p-1.5 md:p-2 rounded-lg" style={{ backgroundColor: `${theme.colors.accent}20` }}>
+                  <Users size={16} style={{ color: theme.colors.accent }} />
                 </div>
                 <div>
-                  <p className="text-xl md:text-2xl font-bold" style={{ color: darkTheme.colors.accent }}>{users.length}</p>
-                  <p className="text-[10px] md:text-xs" style={{ color: darkTheme.colors.mutedText }}>Total Users</p>
+                  <p className="text-xl md:text-2xl font-bold" style={{ color: theme.colors.accent }}>{users.length}</p>
+                  <p className="text-[10px] md:text-xs" style={{ color: theme.colors.mutedText }}>Total Users</p>
                 </div>
               </div>
             </div>
             <div 
               className="p-3 md:p-4 rounded-xl"
               style={{ 
-                backgroundColor: darkTheme.colors.secondarySurface,
-                border: `1px solid ${darkTheme.colors.logoAccent}40`
+                backgroundColor: theme.colors.secondarySurface,
+                border: `1px solid ${theme.colors.logoAccent}40`
               }}
             >
               <div className="flex items-center gap-2 md:gap-3">
@@ -1122,15 +1123,15 @@ const AdminPanel: React.FC = () => {
                   <p className="text-xl md:text-2xl font-bold text-green-400">
                     {users.filter(u => u.role === 'Student').length}
                   </p>
-                  <p className="text-[10px] md:text-xs" style={{ color: darkTheme.colors.mutedText }}>Students</p>
+                  <p className="text-[10px] md:text-xs" style={{ color: theme.colors.mutedText }}>Students</p>
                 </div>
               </div>
             </div>
             <div 
               className="p-3 md:p-4 rounded-xl"
               style={{ 
-                backgroundColor: darkTheme.colors.secondarySurface,
-                border: `1px solid ${darkTheme.colors.logoAccent}40`
+                backgroundColor: theme.colors.secondarySurface,
+                border: `1px solid ${theme.colors.logoAccent}40`
               }}
             >
               <div className="flex items-center gap-2 md:gap-3">
@@ -1141,7 +1142,7 @@ const AdminPanel: React.FC = () => {
                   <p className="text-xl md:text-2xl font-bold text-orange-400">
                     {users.filter(u => u.role === 'Admin').length}
                   </p>
-                  <p className="text-[10px] md:text-xs" style={{ color: darkTheme.colors.mutedText }}>Admins</p>
+                  <p className="text-[10px] md:text-xs" style={{ color: theme.colors.mutedText }}>Admins</p>
                 </div>
               </div>
             </div>
@@ -1150,12 +1151,12 @@ const AdminPanel: React.FC = () => {
           <div 
             className="p-3 md:p-4 rounded-xl"
             style={{ 
-              backgroundColor: darkTheme.colors.secondarySurface,
-              border: `1px solid ${darkTheme.colors.logoAccent}40`
+              backgroundColor: theme.colors.secondarySurface,
+              border: `1px solid ${theme.colors.logoAccent}40`
             }}
           >
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2" size={16} style={{ color: darkTheme.colors.mutedText }} />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2" size={16} style={{ color: theme.colors.mutedText }} />
               <input
                 type="text"
                 placeholder="Search users by name, email, or admission number..."
@@ -1163,9 +1164,9 @@ const AdminPanel: React.FC = () => {
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full pl-9 pr-4 py-2 text-sm rounded-lg focus:outline-none focus:ring-2"
                 style={{ 
-                  backgroundColor: darkTheme.colors.primaryBg,
-                  border: `1px solid ${darkTheme.colors.logoAccent}40`,
-                  color: darkTheme.colors.primaryText
+                  backgroundColor: theme.colors.primaryBg,
+                  border: `1px solid ${theme.colors.logoAccent}40`,
+                  color: theme.colors.primaryText
                 }}
               />
             </div>
@@ -1174,19 +1175,19 @@ const AdminPanel: React.FC = () => {
           <div 
             className="rounded-xl overflow-hidden hidden md:block"
             style={{ 
-              backgroundColor: darkTheme.colors.secondarySurface,
-              border: `1px solid ${darkTheme.colors.logoAccent}40`
+              backgroundColor: theme.colors.secondarySurface,
+              border: `1px solid ${theme.colors.logoAccent}40`
             }}
           >
             <div className="overflow-x-auto">
               <table className="w-full">
-                <thead style={{ backgroundColor: darkTheme.colors.primaryBg, borderBottom: `1px solid ${darkTheme.colors.logoAccent}40` }}>
+                <thead style={{ backgroundColor: theme.colors.primaryBg, borderBottom: `1px solid ${theme.colors.logoAccent}40` }}>
                   <tr>
-                    <th className="text-left px-4 py-3 text-sm font-semibold" style={{ color: darkTheme.colors.mutedText }}>User</th>
-                    <th className="text-left px-4 py-3 text-sm font-semibold" style={{ color: darkTheme.colors.mutedText }}>Admission/Employee ID</th>
-                    <th className="text-center px-4 py-3 text-sm font-semibold" style={{ color: darkTheme.colors.mutedText }}>Current Role</th>
-                    <th className="text-center px-4 py-3 text-sm font-semibold" style={{ color: darkTheme.colors.mutedText }}>Joined</th>
-                    <th className="text-center px-4 py-3 text-sm font-semibold" style={{ color: darkTheme.colors.mutedText }}>Actions</th>
+                    <th className="text-left px-4 py-3 text-sm font-semibold" style={{ color: theme.colors.mutedText }}>User</th>
+                    <th className="text-left px-4 py-3 text-sm font-semibold" style={{ color: theme.colors.mutedText }}>Admission/Employee ID</th>
+                    <th className="text-center px-4 py-3 text-sm font-semibold" style={{ color: theme.colors.mutedText }}>Current Role</th>
+                    <th className="text-center px-4 py-3 text-sm font-semibold" style={{ color: theme.colors.mutedText }}>Joined</th>
+                    <th className="text-center px-4 py-3 text-sm font-semibold" style={{ color: theme.colors.mutedText }}>Actions</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -1199,18 +1200,18 @@ const AdminPanel: React.FC = () => {
                     .map((user, index, arr) => (
                     <tr 
                       key={user.id}
-                      style={{ borderBottom: index < arr.length - 1 ? `1px solid ${darkTheme.colors.logoAccent}20` : 'none' }}
+                      style={{ borderBottom: index < arr.length - 1 ? `1px solid ${theme.colors.logoAccent}20` : 'none' }}
                     >
                       <td className="px-4 py-3">
                         <div>
-                          <p className="font-medium" style={{ color: darkTheme.colors.accent }}>{user.name}</p>
-                          <p className="text-sm" style={{ color: darkTheme.colors.mutedText }}>{user.email}</p>
+                          <p className="font-medium" style={{ color: theme.colors.accent }}>{user.name}</p>
+                          <p className="text-sm" style={{ color: theme.colors.mutedText }}>{user.email}</p>
                         </div>
                       </td>
                       <td className="px-4 py-3">
                         <span 
                           className="text-sm font-mono px-2 py-1 rounded"
-                          style={{ backgroundColor: darkTheme.colors.primaryBg, color: darkTheme.colors.primaryText }}
+                          style={{ backgroundColor: theme.colors.primaryBg, color: theme.colors.primaryText }}
                         >
                           {user.admission_no}
                         </span>
@@ -1222,9 +1223,9 @@ const AdminPanel: React.FC = () => {
                             onChange={(e) => setEditingUser({ ...editingUser, role: e.target.value as any })}
                             className="px-3 py-1.5 text-sm rounded-lg focus:outline-none focus:ring-2"
                             style={{ 
-                              backgroundColor: darkTheme.colors.primaryBg,
-                              border: `1px solid ${darkTheme.colors.logoAccent}40`,
-                              color: darkTheme.colors.primaryText
+                              backgroundColor: theme.colors.primaryBg,
+                              border: `1px solid ${theme.colors.logoAccent}40`,
+                              color: theme.colors.primaryText
                             }}
                           >
                             <option value="Student">Student</option>
@@ -1248,7 +1249,7 @@ const AdminPanel: React.FC = () => {
                           </span>
                         )}
                       </td>
-                      <td className="px-4 py-3 text-center text-sm" style={{ color: darkTheme.colors.primaryText }}>
+                      <td className="px-4 py-3 text-center text-sm" style={{ color: theme.colors.primaryText }}>
                         {new Date(user.created_at).toLocaleDateString()}
                       </td>
                       <td className="px-4 py-3">
@@ -1265,7 +1266,7 @@ const AdminPanel: React.FC = () => {
                               <button
                                 onClick={() => setEditingUser(null)}
                                 className="p-2 rounded-lg"
-                                style={{ color: darkTheme.colors.mutedText }}
+                                style={{ color: theme.colors.mutedText }}
                                 title="Cancel"
                               >
                                 <X size={16} />
@@ -1275,7 +1276,7 @@ const AdminPanel: React.FC = () => {
                             <button
                               onClick={() => setEditingUser(user)}
                               className="p-2 rounded-lg"
-                              style={{ color: darkTheme.colors.accent }}
+                              style={{ color: theme.colors.accent }}
                               title="Edit Role"
                             >
                               <Edit2 size={16} />
@@ -1294,7 +1295,7 @@ const AdminPanel: React.FC = () => {
               user.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
               user.admission_no.toLowerCase().includes(searchQuery.toLowerCase())
             ).length === 0 && (
-              <div className="text-center py-12" style={{ color: darkTheme.colors.mutedText }}>
+              <div className="text-center py-12" style={{ color: theme.colors.mutedText }}>
                 No users found matching your search.
               </div>
             )}
@@ -1312,17 +1313,17 @@ const AdminPanel: React.FC = () => {
                 key={user.id} 
                 className="p-4 rounded-xl"
                 style={{ 
-                  backgroundColor: darkTheme.colors.secondarySurface,
-                  border: `1px solid ${darkTheme.colors.logoAccent}40`
+                  backgroundColor: theme.colors.secondarySurface,
+                  border: `1px solid ${theme.colors.logoAccent}40`
                 }}
               >
                 <div className="flex items-start justify-between mb-3">
                   <div className="flex-1 min-w-0">
-                    <p className="font-medium truncate" style={{ color: darkTheme.colors.accent }}>{user.name}</p>
-                    <p className="text-xs truncate" style={{ color: darkTheme.colors.mutedText }}>{user.email}</p>
+                    <p className="font-medium truncate" style={{ color: theme.colors.accent }}>{user.name}</p>
+                    <p className="text-xs truncate" style={{ color: theme.colors.mutedText }}>{user.email}</p>
                     <p 
                       className="text-xs font-mono px-2 py-0.5 rounded inline-block mt-1"
-                      style={{ backgroundColor: darkTheme.colors.primaryBg, color: darkTheme.colors.primaryText }}
+                      style={{ backgroundColor: theme.colors.primaryBg, color: theme.colors.primaryText }}
                     >
                       {user.admission_no}
                     </p>
@@ -1338,7 +1339,7 @@ const AdminPanel: React.FC = () => {
                       <button
                         onClick={() => setEditingUser(null)}
                         className="p-1.5 rounded"
-                        style={{ color: darkTheme.colors.mutedText }}
+                        style={{ color: theme.colors.mutedText }}
                       >
                         <X size={14} />
                       </button>
@@ -1347,7 +1348,7 @@ const AdminPanel: React.FC = () => {
                     <button
                       onClick={() => setEditingUser(user)}
                       className="p-1.5 rounded"
-                      style={{ color: darkTheme.colors.accent }}
+                      style={{ color: theme.colors.accent }}
                     >
                       <Edit2 size={14} />
                     </button>
@@ -1356,16 +1357,16 @@ const AdminPanel: React.FC = () => {
                 
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-xs mb-1" style={{ color: darkTheme.colors.mutedText }}>Role:</p>
+                    <p className="text-xs mb-1" style={{ color: theme.colors.mutedText }}>Role:</p>
                     {editingUser?.id === user.id ? (
                       <select
                         value={editingUser.role}
                         onChange={(e) => setEditingUser({ ...editingUser, role: e.target.value as any })}
                         className="px-2 py-1 text-xs rounded focus:outline-none focus:ring-2"
                         style={{ 
-                          backgroundColor: darkTheme.colors.primaryBg,
-                          border: `1px solid ${darkTheme.colors.logoAccent}40`,
-                          color: darkTheme.colors.primaryText
+                          backgroundColor: theme.colors.primaryBg,
+                          border: `1px solid ${theme.colors.logoAccent}40`,
+                          color: theme.colors.primaryText
                         }}
                       >
                         <option value="Student">Student</option>
@@ -1390,8 +1391,8 @@ const AdminPanel: React.FC = () => {
                     )}
                   </div>
                   <div className="text-right">
-                    <p className="text-xs mb-1" style={{ color: darkTheme.colors.mutedText }}>Joined:</p>
-                    <p className="text-xs" style={{ color: darkTheme.colors.primaryText }}>{new Date(user.created_at).toLocaleDateString()}</p>
+                    <p className="text-xs mb-1" style={{ color: theme.colors.mutedText }}>Joined:</p>
+                    <p className="text-xs" style={{ color: theme.colors.primaryText }}>{new Date(user.created_at).toLocaleDateString()}</p>
                   </div>
                 </div>
               </div>
@@ -1405,8 +1406,8 @@ const AdminPanel: React.FC = () => {
               <div 
                 className="text-center py-12 rounded-xl"
                 style={{ 
-                  backgroundColor: darkTheme.colors.secondarySurface,
-                  color: darkTheme.colors.mutedText
+                  backgroundColor: theme.colors.secondarySurface,
+                  color: theme.colors.mutedText
                 }}
               >
                 No users found matching your search.
@@ -1414,7 +1415,7 @@ const AdminPanel: React.FC = () => {
             )}
           </div>
 
-          <div className="mt-4 text-sm text-right" style={{ color: darkTheme.colors.mutedText }}>
+          <div className="mt-4 text-sm text-right" style={{ color: theme.colors.mutedText }}>
             Showing {users.filter(user => 
               user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
               user.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -1430,12 +1431,12 @@ const AdminPanel: React.FC = () => {
           <div 
             className="p-3 md:p-4 rounded-xl"
             style={{ 
-              backgroundColor: darkTheme.colors.secondarySurface,
-              border: `1px solid ${darkTheme.colors.logoAccent}40`
+              backgroundColor: theme.colors.secondarySurface,
+              border: `1px solid ${theme.colors.logoAccent}40`
             }}
           >
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2" size={16} style={{ color: darkTheme.colors.mutedText }} />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2" size={16} style={{ color: theme.colors.mutedText }} />
               <input
                 type="text"
                 placeholder="Search by user name, admission number, book title, or author..."
@@ -1443,9 +1444,9 @@ const AdminPanel: React.FC = () => {
                 onChange={(e) => setRequestSearchQuery(e.target.value)}
                 className="w-full pl-9 pr-4 py-2 text-sm rounded-lg focus:outline-none focus:ring-2"
                 style={{ 
-                  backgroundColor: darkTheme.colors.primaryBg,
-                  border: `1px solid ${darkTheme.colors.logoAccent}40`,
-                  color: darkTheme.colors.primaryText
+                  backgroundColor: theme.colors.primaryBg,
+                  border: `1px solid ${theme.colors.logoAccent}40`,
+                  color: theme.colors.primaryText
                 }}
               />
             </div>
@@ -1455,26 +1456,26 @@ const AdminPanel: React.FC = () => {
           <div 
             className="rounded-xl overflow-hidden hidden md:block"
             style={{ 
-              backgroundColor: darkTheme.colors.secondarySurface,
-              border: `1px solid ${darkTheme.colors.logoAccent}40`
+              backgroundColor: theme.colors.secondarySurface,
+              border: `1px solid ${theme.colors.logoAccent}40`
             }}
           >
             <div className="overflow-x-auto">
               <table className="w-full">
-                <thead style={{ backgroundColor: darkTheme.colors.primaryBg, borderBottom: `1px solid ${darkTheme.colors.logoAccent}40` }}>
+                <thead style={{ backgroundColor: theme.colors.primaryBg, borderBottom: `1px solid ${theme.colors.logoAccent}40` }}>
                   <tr>
-                    <th className="text-left px-4 py-3 text-sm font-semibold" style={{ color: darkTheme.colors.mutedText }}>Book</th>
-                    <th className="text-left px-4 py-3 text-sm font-semibold" style={{ color: darkTheme.colors.mutedText }}>Requested By</th>
-                    <th className="text-center px-4 py-3 text-sm font-semibold" style={{ color: darkTheme.colors.mutedText }}>Available</th>
-                    <th className="text-center px-4 py-3 text-sm font-semibold" style={{ color: darkTheme.colors.mutedText }}>Requested</th>
-                    <th className="text-center px-4 py-3 text-sm font-semibold" style={{ color: darkTheme.colors.mutedText }}>Actions</th>
+                    <th className="text-left px-4 py-3 text-sm font-semibold" style={{ color: theme.colors.mutedText }}>Book</th>
+                    <th className="text-left px-4 py-3 text-sm font-semibold" style={{ color: theme.colors.mutedText }}>Requested By</th>
+                    <th className="text-center px-4 py-3 text-sm font-semibold" style={{ color: theme.colors.mutedText }}>Available</th>
+                    <th className="text-center px-4 py-3 text-sm font-semibold" style={{ color: theme.colors.mutedText }}>Requested</th>
+                    <th className="text-center px-4 py-3 text-sm font-semibold" style={{ color: theme.colors.mutedText }}>Actions</th>
                   </tr>
                 </thead>
                 <tbody>
                   {filteredRequests.map((request, index) => (
                     <tr 
                       key={request.id}
-                      style={{ borderBottom: index < filteredRequests.length - 1 ? `1px solid ${darkTheme.colors.logoAccent}20` : 'none' }}
+                      style={{ borderBottom: index < filteredRequests.length - 1 ? `1px solid ${theme.colors.logoAccent}20` : 'none' }}
                     >
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-3">
@@ -1484,17 +1485,17 @@ const AdminPanel: React.FC = () => {
                             className="w-12 h-16 object-cover rounded shadow-sm"
                           />
                           <div className="min-w-0">
-                            <p className="font-medium truncate max-w-[200px]" style={{ color: darkTheme.colors.accent }}>{request.bookTitle}</p>
-                            <p className="text-sm" style={{ color: darkTheme.colors.mutedText }}>{request.bookAuthor}</p>
+                            <p className="font-medium truncate max-w-[200px]" style={{ color: theme.colors.accent }}>{request.bookTitle}</p>
+                            <p className="text-sm" style={{ color: theme.colors.mutedText }}>{request.bookAuthor}</p>
                           </div>
                         </div>
                       </td>
                       <td className="px-4 py-3">
                         <div>
-                          <p className="font-medium" style={{ color: darkTheme.colors.primaryText }}>{request.userName}</p>
+                          <p className="font-medium" style={{ color: theme.colors.primaryText }}>{request.userName}</p>
                           <p 
                             className="text-xs font-mono px-2 py-0.5 rounded inline-block"
-                            style={{ backgroundColor: darkTheme.colors.primaryBg, color: darkTheme.colors.mutedText }}
+                            style={{ backgroundColor: theme.colors.primaryBg, color: theme.colors.mutedText }}
                           >
                             {request.userAdmissionNo}
                           </p>
@@ -1505,10 +1506,10 @@ const AdminPanel: React.FC = () => {
                           {request.copiesAvailable || 0}
                         </span>
                       </td>
-                      <td className="px-4 py-3 text-center text-sm" style={{ color: darkTheme.colors.primaryText }}>
+                      <td className="px-4 py-3 text-center text-sm" style={{ color: theme.colors.primaryText }}>
                         {new Date(request.requestedAt).toLocaleDateString()}
                         <br />
-                        <span className="text-xs" style={{ color: darkTheme.colors.mutedText }}>
+                        <span className="text-xs" style={{ color: theme.colors.mutedText }}>
                           {new Date(request.requestedAt).toLocaleTimeString()}
                         </span>
                       </td>
@@ -1522,9 +1523,9 @@ const AdminPanel: React.FC = () => {
                               onChange={(e) => setRejectionReason(e.target.value)}
                               className="px-2 py-1 text-xs rounded focus:outline-none focus:ring-2"
                               style={{ 
-                                backgroundColor: darkTheme.colors.primaryBg,
-                                border: `1px solid ${darkTheme.colors.logoAccent}40`,
-                                color: darkTheme.colors.primaryText
+                                backgroundColor: theme.colors.primaryBg,
+                                border: `1px solid ${theme.colors.logoAccent}40`,
+                                color: theme.colors.primaryText
                               }}
                             />
                             <div className="flex gap-1">
@@ -1539,8 +1540,8 @@ const AdminPanel: React.FC = () => {
                                 onClick={() => { setRejectingRequestId(null); setRejectionReason(''); }}
                                 className="px-2 py-1 text-xs rounded"
                                 style={{ 
-                                  border: `1px solid ${darkTheme.colors.logoAccent}40`,
-                                  color: darkTheme.colors.primaryText
+                                  border: `1px solid ${theme.colors.logoAccent}40`,
+                                  color: theme.colors.primaryText
                                 }}
                               >
                                 Cancel
@@ -1579,7 +1580,7 @@ const AdminPanel: React.FC = () => {
             </div>
 
             {filteredRequests.length === 0 && (
-              <div className="text-center py-12" style={{ color: darkTheme.colors.mutedText }}>
+              <div className="text-center py-12" style={{ color: theme.colors.mutedText }}>
                 {borrowRequests.length === 0 ? 'No pending borrow requests.' : 'No requests found matching your search.'}
               </div>
             )}
@@ -1592,8 +1593,8 @@ const AdminPanel: React.FC = () => {
                 key={request.id} 
                 className="p-4 rounded-xl"
                 style={{ 
-                  backgroundColor: darkTheme.colors.secondarySurface,
-                  border: `1px solid ${darkTheme.colors.logoAccent}40`
+                  backgroundColor: theme.colors.secondarySurface,
+                  border: `1px solid ${theme.colors.logoAccent}40`
                 }}
               >
                 <div className="flex gap-3 mb-3">
@@ -1603,13 +1604,13 @@ const AdminPanel: React.FC = () => {
                     className="w-16 h-20 object-cover rounded shadow-sm shrink-0"
                   />
                   <div className="flex-1 min-w-0">
-                    <p className="font-medium text-sm truncate" style={{ color: darkTheme.colors.accent }}>{request.bookTitle}</p>
-                    <p className="text-xs truncate" style={{ color: darkTheme.colors.mutedText }}>{request.bookAuthor}</p>
+                    <p className="font-medium text-sm truncate" style={{ color: theme.colors.accent }}>{request.bookTitle}</p>
+                    <p className="text-xs truncate" style={{ color: theme.colors.mutedText }}>{request.bookAuthor}</p>
                     <div className="mt-2">
-                      <p className="text-xs font-medium" style={{ color: darkTheme.colors.primaryText }}>{request.userName}</p>
+                      <p className="text-xs font-medium" style={{ color: theme.colors.primaryText }}>{request.userName}</p>
                       <p 
                         className="text-[10px] font-mono px-1.5 py-0.5 rounded inline-block"
-                        style={{ backgroundColor: darkTheme.colors.primaryBg, color: darkTheme.colors.mutedText }}
+                        style={{ backgroundColor: theme.colors.primaryBg, color: theme.colors.mutedText }}
                       >
                         {request.userAdmissionNo}
                       </p>
@@ -1619,12 +1620,12 @@ const AdminPanel: React.FC = () => {
                 
                 <div className="flex items-center justify-between mb-3 text-xs">
                   <div>
-                    <span style={{ color: darkTheme.colors.mutedText }}>Available: </span>
+                    <span style={{ color: theme.colors.mutedText }}>Available: </span>
                     <span className={`font-medium ${(request.copiesAvailable || 0) > 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
                       {request.copiesAvailable || 0}
                     </span>
                   </div>
-                  <div style={{ color: darkTheme.colors.mutedText }}>
+                  <div style={{ color: theme.colors.mutedText }}>
                     {new Date(request.requestedAt).toLocaleDateString()}
                   </div>
                 </div>
@@ -1638,9 +1639,9 @@ const AdminPanel: React.FC = () => {
                       onChange={(e) => setRejectionReason(e.target.value)}
                       className="w-full px-2 py-1.5 text-xs rounded focus:outline-none focus:ring-2"
                       style={{ 
-                        backgroundColor: darkTheme.colors.primaryBg,
-                        border: `1px solid ${darkTheme.colors.logoAccent}40`,
-                        color: darkTheme.colors.primaryText
+                        backgroundColor: theme.colors.primaryBg,
+                        border: `1px solid ${theme.colors.logoAccent}40`,
+                        color: theme.colors.primaryText
                       }}
                     />
                     <div className="flex gap-2">
@@ -1655,8 +1656,8 @@ const AdminPanel: React.FC = () => {
                         onClick={() => { setRejectingRequestId(null); setRejectionReason(''); }}
                         className="px-3 py-1.5 text-xs rounded"
                         style={{ 
-                          border: `1px solid ${darkTheme.colors.logoAccent}40`,
-                          color: darkTheme.colors.primaryText
+                          border: `1px solid ${theme.colors.logoAccent}40`,
+                          color: theme.colors.primaryText
                         }}
                       >
                         Cancel
@@ -1695,8 +1696,8 @@ const AdminPanel: React.FC = () => {
               <div 
                 className="text-center py-12 rounded-xl"
                 style={{ 
-                  backgroundColor: darkTheme.colors.secondarySurface,
-                  color: darkTheme.colors.mutedText
+                  backgroundColor: theme.colors.secondarySurface,
+                  color: theme.colors.mutedText
                 }}
               >
                 {borrowRequests.length === 0 ? 'No pending borrow requests.' : 'No requests found matching your search.'}
@@ -1704,7 +1705,7 @@ const AdminPanel: React.FC = () => {
             )}
           </div>
 
-          <div className="mt-4 text-sm text-right" style={{ color: darkTheme.colors.mutedText }}>
+          <div className="mt-4 text-sm text-right" style={{ color: theme.colors.mutedText }}>
             Showing {filteredRequests.length} of {borrowRequests.length} requests
           </div>
         </div>
@@ -1717,8 +1718,8 @@ const AdminPanel: React.FC = () => {
             <div 
               className="p-3 md:p-4 rounded-xl"
               style={{ 
-                backgroundColor: darkTheme.colors.secondarySurface,
-                border: `1px solid ${darkTheme.colors.logoAccent}40`
+                backgroundColor: theme.colors.secondarySurface,
+                border: `1px solid ${theme.colors.logoAccent}40`
               }}
             >
               <div className="flex items-center gap-2 md:gap-3">
@@ -1727,15 +1728,15 @@ const AdminPanel: React.FC = () => {
                 </div>
                 <div>
                   <p className="text-xl md:text-2xl font-bold text-green-400">{activeLoans.length}</p>
-                  <p className="text-[10px] md:text-xs" style={{ color: darkTheme.colors.mutedText }}>Active Loans</p>
+                  <p className="text-[10px] md:text-xs" style={{ color: theme.colors.mutedText }}>Active Loans</p>
                 </div>
               </div>
             </div>
             <div 
               className="p-3 md:p-4 rounded-xl"
               style={{ 
-                backgroundColor: darkTheme.colors.secondarySurface,
-                border: `1px solid ${darkTheme.colors.logoAccent}40`
+                backgroundColor: theme.colors.secondarySurface,
+                border: `1px solid ${theme.colors.logoAccent}40`
               }}
             >
               <div className="flex items-center gap-2 md:gap-3">
@@ -1746,15 +1747,15 @@ const AdminPanel: React.FC = () => {
                   <p className="text-xl md:text-2xl font-bold text-red-400">
                     {activeLoans.filter(l => l.isOverdue).length}
                   </p>
-                  <p className="text-[10px] md:text-xs" style={{ color: darkTheme.colors.mutedText }}>Overdue</p>
+                  <p className="text-[10px] md:text-xs" style={{ color: theme.colors.mutedText }}>Overdue</p>
                 </div>
               </div>
             </div>
             <div 
               className="p-3 md:p-4 rounded-xl"
               style={{ 
-                backgroundColor: darkTheme.colors.secondarySurface,
-                border: `1px solid ${darkTheme.colors.logoAccent}40`
+                backgroundColor: theme.colors.secondarySurface,
+                border: `1px solid ${theme.colors.logoAccent}40`
               }}
             >
               <div className="flex items-center gap-2 md:gap-3">
@@ -1765,26 +1766,26 @@ const AdminPanel: React.FC = () => {
                   <p className="text-xl md:text-2xl font-bold text-amber-400">
                     {activeLoans.filter(l => !l.isOverdue && l.daysRemaining <= 3).length}
                   </p>
-                  <p className="text-[10px] md:text-xs" style={{ color: darkTheme.colors.mutedText }}>Due Soon</p>
+                  <p className="text-[10px] md:text-xs" style={{ color: theme.colors.mutedText }}>Due Soon</p>
                 </div>
               </div>
             </div>
             <div 
               className="p-3 md:p-4 rounded-xl"
               style={{ 
-                backgroundColor: darkTheme.colors.secondarySurface,
-                border: `1px solid ${darkTheme.colors.logoAccent}40`
+                backgroundColor: theme.colors.secondarySurface,
+                border: `1px solid ${theme.colors.logoAccent}40`
               }}
             >
               <div className="flex items-center gap-2 md:gap-3">
-                <div className="p-1.5 md:p-2 rounded-lg" style={{ backgroundColor: `${darkTheme.colors.accent}20` }}>
-                  <Users size={16} style={{ color: darkTheme.colors.accent }} />
+                <div className="p-1.5 md:p-2 rounded-lg" style={{ backgroundColor: `${theme.colors.accent}20` }}>
+                  <Users size={16} style={{ color: theme.colors.accent }} />
                 </div>
                 <div>
-                  <p className="text-xl md:text-2xl font-bold" style={{ color: darkTheme.colors.accent }}>
+                  <p className="text-xl md:text-2xl font-bold" style={{ color: theme.colors.accent }}>
                     {new Set(activeLoans.map(l => l.userId)).size}
                   </p>
-                  <p className="text-[10px] md:text-xs" style={{ color: darkTheme.colors.mutedText }}>Borrowers</p>
+                  <p className="text-[10px] md:text-xs" style={{ color: theme.colors.mutedText }}>Borrowers</p>
                 </div>
               </div>
             </div>
@@ -1794,12 +1795,12 @@ const AdminPanel: React.FC = () => {
           <div 
             className="p-3 md:p-4 rounded-xl"
             style={{ 
-              backgroundColor: darkTheme.colors.secondarySurface,
-              border: `1px solid ${darkTheme.colors.logoAccent}40`
+              backgroundColor: theme.colors.secondarySurface,
+              border: `1px solid ${theme.colors.logoAccent}40`
             }}
           >
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2" size={16} style={{ color: darkTheme.colors.mutedText }} />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2" size={16} style={{ color: theme.colors.mutedText }} />
               <input
                 type="text"
                 placeholder="Search by user name, admission number, book title, or author..."
@@ -1807,9 +1808,9 @@ const AdminPanel: React.FC = () => {
                 onChange={(e) => setLoansSearchQuery(e.target.value)}
                 className="w-full pl-9 pr-4 py-2 text-sm rounded-lg focus:outline-none focus:ring-2"
                 style={{ 
-                  backgroundColor: darkTheme.colors.primaryBg,
-                  border: `1px solid ${darkTheme.colors.logoAccent}40`,
-                  color: darkTheme.colors.primaryText
+                  backgroundColor: theme.colors.primaryBg,
+                  border: `1px solid ${theme.colors.logoAccent}40`,
+                  color: theme.colors.primaryText
                 }}
               />
             </div>
@@ -1819,20 +1820,20 @@ const AdminPanel: React.FC = () => {
           <div 
             className="rounded-xl overflow-hidden hidden md:block"
             style={{ 
-              backgroundColor: darkTheme.colors.secondarySurface,
-              border: `1px solid ${darkTheme.colors.logoAccent}40`
+              backgroundColor: theme.colors.secondarySurface,
+              border: `1px solid ${theme.colors.logoAccent}40`
             }}
           >
             <div className="overflow-x-auto">
               <table className="w-full">
-                <thead style={{ backgroundColor: darkTheme.colors.primaryBg, borderBottom: `1px solid ${darkTheme.colors.logoAccent}40` }}>
+                <thead style={{ backgroundColor: theme.colors.primaryBg, borderBottom: `1px solid ${theme.colors.logoAccent}40` }}>
                   <tr>
-                    <th className="text-left px-4 py-3 text-sm font-semibold" style={{ color: darkTheme.colors.mutedText }}>Book</th>
-                    <th className="text-left px-4 py-3 text-sm font-semibold" style={{ color: darkTheme.colors.mutedText }}>Borrower</th>
-                    <th className="text-center px-4 py-3 text-sm font-semibold" style={{ color: darkTheme.colors.mutedText }}>Checkout</th>
-                    <th className="text-center px-4 py-3 text-sm font-semibold" style={{ color: darkTheme.colors.mutedText }}>Due Date</th>
-                    <th className="text-center px-4 py-3 text-sm font-semibold" style={{ color: darkTheme.colors.mutedText }}>Time Remaining</th>
-                    <th className="text-center px-4 py-3 text-sm font-semibold" style={{ color: darkTheme.colors.mutedText }}>Status</th>
+                    <th className="text-left px-4 py-3 text-sm font-semibold" style={{ color: theme.colors.mutedText }}>Book</th>
+                    <th className="text-left px-4 py-3 text-sm font-semibold" style={{ color: theme.colors.mutedText }}>Borrower</th>
+                    <th className="text-center px-4 py-3 text-sm font-semibold" style={{ color: theme.colors.mutedText }}>Checkout</th>
+                    <th className="text-center px-4 py-3 text-sm font-semibold" style={{ color: theme.colors.mutedText }}>Due Date</th>
+                    <th className="text-center px-4 py-3 text-sm font-semibold" style={{ color: theme.colors.mutedText }}>Time Remaining</th>
+                    <th className="text-center px-4 py-3 text-sm font-semibold" style={{ color: theme.colors.mutedText }}>Status</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -1851,7 +1852,7 @@ const AdminPanel: React.FC = () => {
                       key={loan.id}
                       style={{ 
                         backgroundColor: loan.isOverdue ? 'rgba(239, 68, 68, 0.1)' : 'transparent',
-                        borderBottom: index < arr.length - 1 ? `1px solid ${darkTheme.colors.logoAccent}20` : 'none'
+                        borderBottom: index < arr.length - 1 ? `1px solid ${theme.colors.logoAccent}20` : 'none'
                       }}
                     >
                       <td className="px-4 py-3">
@@ -1862,27 +1863,27 @@ const AdminPanel: React.FC = () => {
                             className="w-12 h-16 object-cover rounded shadow-sm"
                           />
                           <div className="min-w-0">
-                            <p className="font-medium truncate max-w-[200px]" style={{ color: darkTheme.colors.accent }}>{loan.book?.title}</p>
-                            <p className="text-sm" style={{ color: darkTheme.colors.mutedText }}>{loan.book?.author}</p>
-                            <p className="text-xs" style={{ color: darkTheme.colors.mutedText }}>{loan.book?.category}</p>
+                            <p className="font-medium truncate max-w-[200px]" style={{ color: theme.colors.accent }}>{loan.book?.title}</p>
+                            <p className="text-sm" style={{ color: theme.colors.mutedText }}>{loan.book?.author}</p>
+                            <p className="text-xs" style={{ color: theme.colors.mutedText }}>{loan.book?.category}</p>
                           </div>
                         </div>
                       </td>
                       <td className="px-4 py-3">
                         <div>
-                          <p className="font-medium" style={{ color: darkTheme.colors.primaryText }}>{loan.userName}</p>
+                          <p className="font-medium" style={{ color: theme.colors.primaryText }}>{loan.userName}</p>
                           <p 
                             className="text-xs font-mono px-2 py-0.5 rounded inline-block"
-                            style={{ backgroundColor: darkTheme.colors.primaryBg, color: darkTheme.colors.mutedText }}
+                            style={{ backgroundColor: theme.colors.primaryBg, color: theme.colors.mutedText }}
                           >
                             {loan.userAdmissionNo}
                           </p>
                         </div>
                       </td>
-                      <td className="px-4 py-3 text-center text-sm" style={{ color: darkTheme.colors.primaryText }}>
+                      <td className="px-4 py-3 text-center text-sm" style={{ color: theme.colors.primaryText }}>
                         {new Date(loan.checkoutDate).toLocaleDateString()}
                       </td>
-                      <td className="px-4 py-3 text-center text-sm" style={{ color: darkTheme.colors.primaryText }}>
+                      <td className="px-4 py-3 text-center text-sm" style={{ color: theme.colors.primaryText }}>
                         {new Date(loan.dueDate).toLocaleDateString()}
                       </td>
                       <td className="px-4 py-3">
@@ -1926,7 +1927,7 @@ const AdminPanel: React.FC = () => {
                 loan.book?.author?.toLowerCase().includes(searchLower)
               );
             }).length === 0 && (
-              <div className="text-center py-12" style={{ color: darkTheme.colors.mutedText }}>
+              <div className="text-center py-12" style={{ color: theme.colors.mutedText }}>
                 {activeLoans.length === 0 ? 'No active loans.' : 'No loans found matching your search.'}
               </div>
             )}
@@ -1949,8 +1950,8 @@ const AdminPanel: React.FC = () => {
                 key={loan.id} 
                 className={`p-4 rounded-xl ${loan.isOverdue ? 'border-l-4 border-red-400' : loan.daysRemaining <= 3 ? 'border-l-4 border-amber-400' : 'border-l-4 border-green-400'}`}
                 style={{ 
-                  backgroundColor: darkTheme.colors.secondarySurface,
-                  border: `1px solid ${darkTheme.colors.logoAccent}40`
+                  backgroundColor: theme.colors.secondarySurface,
+                  border: `1px solid ${theme.colors.logoAccent}40`
                 }}
               >
                 <div className="flex gap-3 mb-3">
@@ -1960,13 +1961,13 @@ const AdminPanel: React.FC = () => {
                     className="w-16 h-20 object-cover rounded shadow-sm shrink-0"
                   />
                   <div className="flex-1 min-w-0">
-                    <p className="font-medium text-sm truncate" style={{ color: darkTheme.colors.accent }}>{loan.book?.title}</p>
-                    <p className="text-xs truncate" style={{ color: darkTheme.colors.mutedText }}>{loan.book?.author}</p>
+                    <p className="font-medium text-sm truncate" style={{ color: theme.colors.accent }}>{loan.book?.title}</p>
+                    <p className="text-xs truncate" style={{ color: theme.colors.mutedText }}>{loan.book?.author}</p>
                     <div className="mt-2">
-                      <p className="text-xs font-medium" style={{ color: darkTheme.colors.primaryText }}>{loan.userName}</p>
+                      <p className="text-xs font-medium" style={{ color: theme.colors.primaryText }}>{loan.userName}</p>
                       <p 
                         className="text-[10px] font-mono px-1.5 py-0.5 rounded inline-block"
-                        style={{ backgroundColor: darkTheme.colors.primaryBg, color: darkTheme.colors.mutedText }}
+                        style={{ backgroundColor: theme.colors.primaryBg, color: theme.colors.mutedText }}
                       >
                         {loan.userAdmissionNo}
                       </p>
@@ -1975,7 +1976,7 @@ const AdminPanel: React.FC = () => {
                 </div>
                 
                 <div className="flex items-center justify-between mb-3 text-xs">
-                  <div style={{ color: darkTheme.colors.mutedText }}>
+                  <div style={{ color: theme.colors.mutedText }}>
                     Due: {new Date(loan.dueDate).toLocaleDateString()}
                   </div>
                   {loan.isOverdue ? (
@@ -2013,8 +2014,8 @@ const AdminPanel: React.FC = () => {
               <div 
                 className="text-center py-12 rounded-xl"
                 style={{ 
-                  backgroundColor: darkTheme.colors.secondarySurface,
-                  color: darkTheme.colors.mutedText
+                  backgroundColor: theme.colors.secondarySurface,
+                  color: theme.colors.mutedText
                 }}
               >
                 {activeLoans.length === 0 ? 'No active loans.' : 'No loans found matching your search.'}
@@ -2022,7 +2023,7 @@ const AdminPanel: React.FC = () => {
             )}
           </div>
 
-          <div className="mt-4 text-sm text-right" style={{ color: darkTheme.colors.mutedText }}>
+          <div className="mt-4 text-sm text-right" style={{ color: theme.colors.mutedText }}>
             Showing {activeLoans.filter(loan => {
               const searchLower = loansSearchQuery.toLowerCase();
               return (
@@ -2063,6 +2064,7 @@ const BookFormModal: React.FC<BookFormModalProps> = ({
   onChange,
   isEdit = false
 }) => {
+  const theme = useAppTheme();
   const [uploadingPdf, setUploadingPdf] = React.useState(false);
   const [pdfUploadError, setPdfUploadError] = React.useState<string | null>(null);
   const [pdfFileName, setPdfFileName] = React.useState<string | null>(null);
@@ -2160,15 +2162,38 @@ const BookFormModal: React.FC<BookFormModalProps> = ({
   // Auto-fill from PDF filename when PDF is uploaded
   const handlePdfUploadWithAi = async (file: File, base64Data: string, fileName: string) => {
     // First upload the PDF
-    const response = await fetch(`${API_URL}/admin/upload-pdf`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ fileName, fileData: base64Data })
-    });
+    try {
+      const response = await fetch(`${API_URL}/admin/upload-pdf`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ fileName, fileData: base64Data })
+      });
 
-    const data = await response.json();
+      // Check if response is JSON before parsing
+      const contentType = response.headers.get('content-type');
+      let data;
+      
+      if (contentType && contentType.includes('application/json')) {
+        data = await response.json();
+      } else {
+        // Server returned non-JSON response (likely an error page)
+        const text = await response.text();
+        console.error('Server returned non-JSON response:', text);
+        
+        // Check for common server errors
+        if (text.includes('Request Entity Too Large') || response.status === 413) {
+          setPdfUploadError('File is too large. Please use a smaller PDF (max 50MB).');
+        } else if (response.status === 404) {
+          setPdfUploadError('Upload endpoint not found. Please check server configuration.');
+        } else if (response.status >= 500) {
+          setPdfUploadError('Server error. Please try again later or contact support.');
+        } else {
+          setPdfUploadError(`Upload failed: ${text.substring(0, 100) || 'Unknown error'}`);
+        }
+        return;
+      }
 
-    if (response.ok && data.success) {
+      if (response.ok && data.success) {
       onChange({ ...book, softCopyUrl: data.url, hasSoftCopy: true });
       setPdfFileName(file.name);
       setPdfUploadError(null);
@@ -2241,6 +2266,10 @@ const BookFormModal: React.FC<BookFormModalProps> = ({
     } else {
       setPdfUploadError(data.error || 'Failed to upload PDF');
     }
+    } catch (err: any) {
+      console.error('PDF upload error:', err);
+      setPdfUploadError(err.message || 'Failed to upload PDF. Please try again.');
+    }
   };
 
   const handlePdfUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -2253,15 +2282,16 @@ const BookFormModal: React.FC<BookFormModalProps> = ({
       return;
     }
 
-    // Validate file size (50MB max)
-    if (file.size > 50 * 1024 * 1024) {
-      setPdfUploadError('File size must be less than 50MB');
+    // Validate file size - Vercel has a 4.5MB limit for serverless functions
+    // For larger files, users should use direct URL input
+    if (file.size > 4 * 1024 * 1024) {
+      setPdfUploadError('File is too large for direct upload (max 4MB). Please upload to Google Drive or Dropbox and paste the URL instead.');
       return;
     }
 
-    // Warn for large files on mobile
-    if (file.size > 10 * 1024 * 1024) {
-      console.log('Large file detected, upload may take longer on mobile');
+    // Warn for files approaching the limit
+    if (file.size > 3 * 1024 * 1024) {
+      console.log('Large file detected, upload may be slow');
     }
 
     setUploadingPdf(true);
@@ -2318,11 +2348,11 @@ const BookFormModal: React.FC<BookFormModalProps> = ({
     <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
       <div 
         className="rounded-2xl p-6 w-full max-w-3xl max-h-[90vh] overflow-y-auto"
-        style={{ backgroundColor: darkTheme.colors.secondarySurface }}
+        style={{ backgroundColor: theme.colors.secondarySurface }}
       >
         <div className="flex items-center justify-between mb-6">
-          <h3 className="text-xl font-bold" style={{ color: darkTheme.colors.accent }}>{title}</h3>
-          <button onClick={onClose} style={{ color: darkTheme.colors.mutedText }}>
+          <h3 className="text-xl font-bold" style={{ color: theme.colors.accent }}>{title}</h3>
+          <button onClick={onClose} style={{ color: theme.colors.mutedText }}>
             <X size={24} />
           </button>
         </div>
@@ -2332,16 +2362,16 @@ const BookFormModal: React.FC<BookFormModalProps> = ({
           className="mb-6 p-4 rounded-xl"
           style={{ 
             background: `linear-gradient(to right, rgba(88, 166, 255, 0.1), rgba(88, 166, 255, 0.05))`,
-            border: `1px solid ${darkTheme.colors.accent}40`
+            border: `1px solid ${theme.colors.accent}40`
           }}
         >
           <div className="flex items-center justify-between gap-4 flex-wrap">
             <div>
-              <h4 className="text-sm font-semibold flex items-center gap-2" style={{ color: darkTheme.colors.accent }}>
+              <h4 className="text-sm font-semibold flex items-center gap-2" style={{ color: theme.colors.accent }}>
                 <TrendingUp size={16} />
                 AI Auto-Fill
               </h4>
-              <p className="text-xs mt-1" style={{ color: darkTheme.colors.mutedText }}>
+              <p className="text-xs mt-1" style={{ color: theme.colors.mutedText }}>
                 Enter a title or upload a PDF, then click to auto-fill book details and cover image
               </p>
             </div>
@@ -2350,7 +2380,7 @@ const BookFormModal: React.FC<BookFormModalProps> = ({
               onClick={handleAiAutoFill}
               disabled={aiLoading || (!book.title && !pdfFileName)}
               className="px-4 py-2 text-white text-sm font-medium rounded-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 transition-all"
-              style={{ backgroundColor: darkTheme.colors.accent }}
+              style={{ backgroundColor: theme.colors.accent }}
             >
               {aiLoading ? (
                 <>
@@ -2382,15 +2412,15 @@ const BookFormModal: React.FC<BookFormModalProps> = ({
         <form onSubmit={onSubmit} className="space-y-4">
           <div className="flex gap-6">
             <div className="shrink-0">
-              <label className="block text-sm font-medium mb-2" style={{ color: darkTheme.colors.mutedText }}>Cover Preview</label>
+              <label className="block text-sm font-medium mb-2" style={{ color: theme.colors.mutedText }}>Cover Preview</label>
               <div 
                 className="w-32 h-44 rounded-lg overflow-hidden border-2 border-dashed"
-                style={{ backgroundColor: darkTheme.colors.primaryBg, borderColor: darkTheme.colors.logoAccent }}
+                style={{ backgroundColor: theme.colors.primaryBg, borderColor: theme.colors.logoAccent }}
               >
                 {book.coverUrl ? (
                   <img src={book.coverUrl} alt="Cover" className="w-full h-full object-cover" />
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center" style={{ color: darkTheme.colors.mutedText }}>
+                  <div className="w-full h-full flex items-center justify-center" style={{ color: theme.colors.mutedText }}>
                     <Image size={32} />
                   </div>
                 )}
@@ -2398,7 +2428,7 @@ const BookFormModal: React.FC<BookFormModalProps> = ({
             </div>
             <div className="flex-1 space-y-4">
               <div>
-                <label className="block text-sm font-medium mb-1" style={{ color: darkTheme.colors.mutedText }}>Cover Image URL</label>
+                <label className="block text-sm font-medium mb-1" style={{ color: theme.colors.mutedText }}>Cover Image URL</label>
                 <input
                   type="url"
                   value={book.coverUrl || ''}
@@ -2406,15 +2436,15 @@ const BookFormModal: React.FC<BookFormModalProps> = ({
                   placeholder="https://example.com/cover.jpg"
                   className="w-full px-3 py-2 rounded-lg focus:outline-none focus:ring-2"
                   style={{ 
-                    backgroundColor: darkTheme.colors.primaryBg,
-                    border: `1px solid ${darkTheme.colors.logoAccent}40`,
-                    color: darkTheme.colors.primaryText
+                    backgroundColor: theme.colors.primaryBg,
+                    border: `1px solid ${theme.colors.logoAccent}40`,
+                    color: theme.colors.primaryText
                   }}
                 />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium mb-1" style={{ color: darkTheme.colors.mutedText }}>Title *</label>
+                  <label className="block text-sm font-medium mb-1" style={{ color: theme.colors.mutedText }}>Title *</label>
                   <input
                     type="text"
                     required
@@ -2422,14 +2452,14 @@ const BookFormModal: React.FC<BookFormModalProps> = ({
                     onChange={(e) => onChange({ ...book, title: e.target.value })}
                     className="w-full px-3 py-2 rounded-lg focus:outline-none focus:ring-2"
                     style={{ 
-                      backgroundColor: darkTheme.colors.primaryBg,
-                      border: `1px solid ${darkTheme.colors.logoAccent}40`,
-                      color: darkTheme.colors.primaryText
+                      backgroundColor: theme.colors.primaryBg,
+                      border: `1px solid ${theme.colors.logoAccent}40`,
+                      color: theme.colors.primaryText
                     }}
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-1" style={{ color: darkTheme.colors.mutedText }}>Author *</label>
+                  <label className="block text-sm font-medium mb-1" style={{ color: theme.colors.mutedText }}>Author *</label>
                   <input
                     type="text"
                     required
@@ -2437,9 +2467,9 @@ const BookFormModal: React.FC<BookFormModalProps> = ({
                     onChange={(e) => onChange({ ...book, author: e.target.value })}
                     className="w-full px-3 py-2 rounded-lg focus:outline-none focus:ring-2"
                     style={{ 
-                      backgroundColor: darkTheme.colors.primaryBg,
-                      border: `1px solid ${darkTheme.colors.logoAccent}40`,
-                      color: darkTheme.colors.primaryText
+                      backgroundColor: theme.colors.primaryBg,
+                      border: `1px solid ${theme.colors.logoAccent}40`,
+                      color: theme.colors.primaryText
                     }}
                   />
                 </div>
@@ -2449,16 +2479,16 @@ const BookFormModal: React.FC<BookFormModalProps> = ({
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
-              <label className="block text-sm font-medium mb-1" style={{ color: darkTheme.colors.mutedText }}>Category *</label>
+              <label className="block text-sm font-medium mb-1" style={{ color: theme.colors.mutedText }}>Category *</label>
               <select
                 required
                 value={book.categoryId || ''}
                 onChange={(e) => onChange({ ...book, categoryId: e.target.value })}
                 className="w-full px-3 py-2 rounded-lg focus:outline-none focus:ring-2"
                 style={{ 
-                  backgroundColor: darkTheme.colors.primaryBg,
-                  border: `1px solid ${darkTheme.colors.logoAccent}40`,
-                  color: darkTheme.colors.primaryText
+                  backgroundColor: theme.colors.primaryBg,
+                  border: `1px solid ${theme.colors.logoAccent}40`,
+                  color: theme.colors.primaryText
                 }}
               >
                 <option value="">Select category</option>
@@ -2468,7 +2498,7 @@ const BookFormModal: React.FC<BookFormModalProps> = ({
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium mb-1" style={{ color: darkTheme.colors.mutedText }}>ISBN</label>
+              <label className="block text-sm font-medium mb-1" style={{ color: theme.colors.mutedText }}>ISBN</label>
               <input
                 type="text"
                 value={book.isbn || ''}
@@ -2476,14 +2506,14 @@ const BookFormModal: React.FC<BookFormModalProps> = ({
                 placeholder="978-3-16-148410-0"
                 className="w-full px-3 py-2 rounded-lg focus:outline-none focus:ring-2"
                 style={{ 
-                  backgroundColor: darkTheme.colors.primaryBg,
-                  border: `1px solid ${darkTheme.colors.logoAccent}40`,
-                  color: darkTheme.colors.primaryText
+                  backgroundColor: theme.colors.primaryBg,
+                  border: `1px solid ${theme.colors.logoAccent}40`,
+                  color: theme.colors.primaryText
                 }}
               />
             </div>
             <div>
-              <label className="block text-sm font-medium mb-1" style={{ color: darkTheme.colors.mutedText }}>Published Year</label>
+              <label className="block text-sm font-medium mb-1" style={{ color: theme.colors.mutedText }}>Published Year</label>
               <input
                 type="number"
                 min="1800"
@@ -2492,9 +2522,9 @@ const BookFormModal: React.FC<BookFormModalProps> = ({
                 onChange={(e) => onChange({ ...book, publishedYear: parseInt(e.target.value) || '' })}
                 className="w-full px-3 py-2 rounded-lg focus:outline-none focus:ring-2"
                 style={{ 
-                  backgroundColor: darkTheme.colors.primaryBg,
-                  border: `1px solid ${darkTheme.colors.logoAccent}40`,
-                  color: darkTheme.colors.primaryText
+                  backgroundColor: theme.colors.primaryBg,
+                  border: `1px solid ${theme.colors.logoAccent}40`,
+                  color: theme.colors.primaryText
                 }}
               />
             </div>
@@ -2503,14 +2533,14 @@ const BookFormModal: React.FC<BookFormModalProps> = ({
           <div 
             className="p-4 rounded-lg"
             style={{ 
-              backgroundColor: `${darkTheme.colors.accent}10`,
-              border: `1px solid ${darkTheme.colors.accent}30`
+              backgroundColor: `${theme.colors.accent}10`,
+              border: `1px solid ${theme.colors.accent}30`
             }}
           >
-            <h4 className="text-sm font-semibold mb-3" style={{ color: darkTheme.colors.accent }}>Library Location Information</h4>
+            <h4 className="text-sm font-semibold mb-3" style={{ color: theme.colors.accent }}>Library Location Information</h4>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
-                <label className="block text-sm font-medium mb-1" style={{ color: darkTheme.colors.mutedText }}>Call Number</label>
+                <label className="block text-sm font-medium mb-1" style={{ color: theme.colors.mutedText }}>Call Number</label>
                 <input
                   type="text"
                   value={book.callNumber || ''}
@@ -2518,15 +2548,15 @@ const BookFormModal: React.FC<BookFormModalProps> = ({
                   placeholder="e.g., 004 BRO"
                   className="w-full px-3 py-2 rounded-lg focus:outline-none focus:ring-2"
                   style={{ 
-                    backgroundColor: darkTheme.colors.primaryBg,
-                    border: `1px solid ${darkTheme.colors.logoAccent}40`,
-                    color: darkTheme.colors.primaryText
+                    backgroundColor: theme.colors.primaryBg,
+                    border: `1px solid ${theme.colors.logoAccent}40`,
+                    color: theme.colors.primaryText
                   }}
                 />
-                <p className="text-xs mt-1" style={{ color: darkTheme.colors.mutedText }}>Dewey Decimal or custom</p>
+                <p className="text-xs mt-1" style={{ color: theme.colors.mutedText }}>Dewey Decimal or custom</p>
               </div>
               <div>
-                <label className="block text-sm font-medium mb-1" style={{ color: darkTheme.colors.mutedText }}>Shelf Location</label>
+                <label className="block text-sm font-medium mb-1" style={{ color: theme.colors.mutedText }}>Shelf Location</label>
                 <input
                   type="text"
                   value={book.shelfLocation || ''}
@@ -2534,14 +2564,14 @@ const BookFormModal: React.FC<BookFormModalProps> = ({
                   placeholder="e.g., Technology Section"
                   className="w-full px-3 py-2 rounded-lg focus:outline-none focus:ring-2"
                   style={{ 
-                    backgroundColor: darkTheme.colors.primaryBg,
-                    border: `1px solid ${darkTheme.colors.logoAccent}40`,
-                    color: darkTheme.colors.primaryText
+                    backgroundColor: theme.colors.primaryBg,
+                    border: `1px solid ${theme.colors.logoAccent}40`,
+                    color: theme.colors.primaryText
                   }}
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium mb-1" style={{ color: darkTheme.colors.mutedText }}>Floor Number</label>
+                <label className="block text-sm font-medium mb-1" style={{ color: theme.colors.mutedText }}>Floor Number</label>
                 <input
                   type="number"
                   min="1"
@@ -2550,9 +2580,9 @@ const BookFormModal: React.FC<BookFormModalProps> = ({
                   onChange={(e) => onChange({ ...book, floorNumber: parseInt(e.target.value) || 1 })}
                   className="w-full px-3 py-2 rounded-lg focus:outline-none focus:ring-2"
                   style={{ 
-                    backgroundColor: darkTheme.colors.primaryBg,
-                    border: `1px solid ${darkTheme.colors.logoAccent}40`,
-                    color: darkTheme.colors.primaryText
+                    backgroundColor: theme.colors.primaryBg,
+                    border: `1px solid ${theme.colors.logoAccent}40`,
+                    color: theme.colors.primaryText
                   }}
                 />
               </div>
@@ -2575,9 +2605,9 @@ const BookFormModal: React.FC<BookFormModalProps> = ({
                   checked={book.hasSoftCopy || false}
                   onChange={(e) => onChange({ ...book, hasSoftCopy: e.target.checked, softCopyUrl: e.target.checked ? book.softCopyUrl : '' })}
                   className="h-4 w-4 text-green-500 focus:ring-green-500 border-gray-600 rounded"
-                  style={{ backgroundColor: darkTheme.colors.primaryBg }}
+                  style={{ backgroundColor: theme.colors.primaryBg }}
                 />
-                <label htmlFor="hasSoftCopy" className="text-sm font-medium" style={{ color: darkTheme.colors.primaryText }}>
+                <label htmlFor="hasSoftCopy" className="text-sm font-medium" style={{ color: theme.colors.primaryText }}>
                   This book has a digital/PDF version available
                 </label>
               </div>
@@ -2586,16 +2616,16 @@ const BookFormModal: React.FC<BookFormModalProps> = ({
                   {/* PDF File Upload */}
                   <div 
                     className="p-3 rounded-lg"
-                    style={{ backgroundColor: darkTheme.colors.primaryBg, border: `1px solid rgba(34, 197, 94, 0.3)` }}
+                    style={{ backgroundColor: theme.colors.primaryBg, border: `1px solid rgba(34, 197, 94, 0.3)` }}
                   >
-                    <label className="block text-sm font-medium mb-2" style={{ color: darkTheme.colors.mutedText }}>
+                    <label className="block text-sm font-medium mb-2" style={{ color: theme.colors.mutedText }}>
                       Upload PDF from your device
                     </label>
                     <div className="flex items-center gap-3">
                       <label 
                         className="flex-1 flex items-center justify-center gap-2 px-4 py-3 border-2 border-dashed rounded-lg cursor-pointer transition-colors"
                         style={{ 
-                          borderColor: uploadingPdf ? 'rgba(34, 197, 94, 0.5)' : darkTheme.colors.logoAccent,
+                          borderColor: uploadingPdf ? 'rgba(34, 197, 94, 0.5)' : theme.colors.logoAccent,
                           backgroundColor: uploadingPdf ? 'rgba(34, 197, 94, 0.1)' : 'transparent'
                         }}
                       >
@@ -2614,7 +2644,7 @@ const BookFormModal: React.FC<BookFormModalProps> = ({
                         ) : (
                           <>
                             <Package size={20} className="text-green-400" />
-                            <span className="text-sm" style={{ color: darkTheme.colors.mutedText }}>
+                            <span className="text-sm" style={{ color: theme.colors.mutedText }}>
                               {pdfFileName || 'Click to select PDF file'}
                             </span>
                           </>
@@ -2627,19 +2657,19 @@ const BookFormModal: React.FC<BookFormModalProps> = ({
                         {pdfUploadError}
                       </p>
                     )}
-                    <p className="text-xs mt-2" style={{ color: darkTheme.colors.mutedText }}>Max file size: 50MB. PDF files only.</p>
+                    <p className="text-xs mt-2" style={{ color: theme.colors.mutedText }}>Max file size: 4MB. For larger files, use Google Drive/Dropbox and paste the URL below.</p>
                   </div>
 
                   {/* OR divider */}
                   <div className="flex items-center gap-3">
-                    <div className="flex-1 h-px" style={{ backgroundColor: darkTheme.colors.logoAccent }}></div>
-                    <span className="text-xs font-medium" style={{ color: darkTheme.colors.mutedText }}>OR</span>
-                    <div className="flex-1 h-px" style={{ backgroundColor: darkTheme.colors.logoAccent }}></div>
+                    <div className="flex-1 h-px" style={{ backgroundColor: theme.colors.logoAccent }}></div>
+                    <span className="text-xs font-medium" style={{ color: theme.colors.mutedText }}>OR</span>
+                    <div className="flex-1 h-px" style={{ backgroundColor: theme.colors.logoAccent }}></div>
                   </div>
 
                   {/* URL Input */}
                   <div>
-                    <label className="block text-sm font-medium mb-1" style={{ color: darkTheme.colors.mutedText }}>Paste URL directly</label>
+                    <label className="block text-sm font-medium mb-1" style={{ color: theme.colors.mutedText }}>Paste URL directly</label>
                     <input
                       type="url"
                       value={book.softCopyUrl || ''}
@@ -2647,12 +2677,12 @@ const BookFormModal: React.FC<BookFormModalProps> = ({
                       placeholder="https://example.com/book.pdf or Google Drive link"
                       className="w-full px-3 py-2 rounded-lg focus:outline-none focus:ring-2"
                       style={{ 
-                        backgroundColor: darkTheme.colors.primaryBg,
-                        border: `1px solid ${darkTheme.colors.logoAccent}40`,
-                        color: darkTheme.colors.primaryText
+                        backgroundColor: theme.colors.primaryBg,
+                        border: `1px solid ${theme.colors.logoAccent}40`,
+                        color: theme.colors.primaryText
                       }}
                     />
-                    <p className="text-xs mt-1" style={{ color: darkTheme.colors.mutedText }}>Link to PDF, Google Drive, Dropbox, or other digital version</p>
+                    <p className="text-xs mt-1" style={{ color: theme.colors.mutedText }}>Link to PDF, Google Drive, Dropbox, or other digital version</p>
                   </div>
 
                   {/* Current URL display */}
@@ -2669,21 +2699,21 @@ const BookFormModal: React.FC<BookFormModalProps> = ({
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
-              <label className="block text-sm font-medium mb-1" style={{ color: darkTheme.colors.mutedText }}>Publisher</label>
+              <label className="block text-sm font-medium mb-1" style={{ color: theme.colors.mutedText }}>Publisher</label>
               <input
                 type="text"
                 value={book.publisher || ''}
                 onChange={(e) => onChange({ ...book, publisher: e.target.value })}
                 className="w-full px-3 py-2 rounded-lg focus:outline-none focus:ring-2"
                 style={{ 
-                  backgroundColor: darkTheme.colors.primaryBg,
-                  border: `1px solid ${darkTheme.colors.logoAccent}40`,
-                  color: darkTheme.colors.primaryText
+                  backgroundColor: theme.colors.primaryBg,
+                  border: `1px solid ${theme.colors.logoAccent}40`,
+                  color: theme.colors.primaryText
                 }}
               />
             </div>
             <div>
-              <label className="block text-sm font-medium mb-1" style={{ color: darkTheme.colors.mutedText }}>Total Copies *</label>
+              <label className="block text-sm font-medium mb-1" style={{ color: theme.colors.mutedText }}>Total Copies *</label>
               <input
                 type="number"
                 required
@@ -2699,15 +2729,15 @@ const BookFormModal: React.FC<BookFormModalProps> = ({
                 }}
                 className="w-full px-3 py-2 rounded-lg focus:outline-none focus:ring-2"
                 style={{ 
-                  backgroundColor: darkTheme.colors.primaryBg,
-                  border: `1px solid ${darkTheme.colors.logoAccent}40`,
-                  color: darkTheme.colors.primaryText
+                  backgroundColor: theme.colors.primaryBg,
+                  border: `1px solid ${theme.colors.logoAccent}40`,
+                  color: theme.colors.primaryText
                 }}
               />
             </div>
             {isEdit && (
               <div>
-                <label className="block text-sm font-medium mb-1" style={{ color: darkTheme.colors.mutedText }}>Available Copies</label>
+                <label className="block text-sm font-medium mb-1" style={{ color: theme.colors.mutedText }}>Available Copies</label>
                 <input
                   type="number"
                   min="0"
@@ -2716,9 +2746,9 @@ const BookFormModal: React.FC<BookFormModalProps> = ({
                   onChange={(e) => onChange({ ...book, copiesAvailable: parseInt(e.target.value) || 0 })}
                   className="w-full px-3 py-2 rounded-lg focus:outline-none focus:ring-2"
                   style={{ 
-                    backgroundColor: darkTheme.colors.primaryBg,
-                    border: `1px solid ${darkTheme.colors.logoAccent}40`,
-                    color: darkTheme.colors.primaryText
+                    backgroundColor: theme.colors.primaryBg,
+                    border: `1px solid ${theme.colors.logoAccent}40`,
+                    color: theme.colors.primaryText
                   }}
                 />
               </div>
@@ -2726,7 +2756,7 @@ const BookFormModal: React.FC<BookFormModalProps> = ({
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-1" style={{ color: darkTheme.colors.mutedText }}>Description</label>
+            <label className="block text-sm font-medium mb-1" style={{ color: theme.colors.mutedText }}>Description</label>
             <textarea
               rows={3}
               value={book.description || ''}
@@ -2734,21 +2764,21 @@ const BookFormModal: React.FC<BookFormModalProps> = ({
               placeholder="Brief description of the book..."
               className="w-full px-3 py-2 rounded-lg focus:outline-none focus:ring-2"
               style={{ 
-                backgroundColor: darkTheme.colors.primaryBg,
-                border: `1px solid ${darkTheme.colors.logoAccent}40`,
-                color: darkTheme.colors.primaryText
+                backgroundColor: theme.colors.primaryBg,
+                border: `1px solid ${theme.colors.logoAccent}40`,
+                color: theme.colors.primaryText
               }}
             />
           </div>
 
-          <div className="flex gap-3 pt-4" style={{ borderTop: `1px solid ${darkTheme.colors.logoAccent}30` }}>
+          <div className="flex gap-3 pt-4" style={{ borderTop: `1px solid ${theme.colors.logoAccent}30` }}>
             <button
               type="button"
               onClick={onClose}
               className="flex-1 px-4 py-2.5 rounded-lg transition-colors"
               style={{ 
-                border: `1px solid ${darkTheme.colors.logoAccent}40`,
-                color: darkTheme.colors.primaryText
+                border: `1px solid ${theme.colors.logoAccent}40`,
+                color: theme.colors.primaryText
               }}
             >
               Cancel
@@ -2756,7 +2786,7 @@ const BookFormModal: React.FC<BookFormModalProps> = ({
             <button
               type="submit"
               className="flex-1 px-4 py-2.5 text-white rounded-lg transition-colors flex items-center justify-center gap-2"
-              style={{ backgroundColor: darkTheme.colors.accent }}
+              style={{ backgroundColor: theme.colors.accent }}
             >
               <Save size={18} />
               {isEdit ? 'Save Changes' : 'Add Book'}
@@ -2769,3 +2799,4 @@ const BookFormModal: React.FC<BookFormModalProps> = ({
 };
 
 export default AdminPanel;
+
