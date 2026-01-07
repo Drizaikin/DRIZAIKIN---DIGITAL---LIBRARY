@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { User, Lock, ArrowRight, GraduationCap, Briefcase, BookOpen, ArrowLeft, CheckCircle, Shield, HelpCircle, Eye, EyeOff } from 'lucide-react';
+import { darkTheme } from '../constants/darkTheme';
 
 const API_URL = import.meta.env.VITE_API_URL || '/api';
 
@@ -40,6 +41,9 @@ const Login: React.FC<LoginProps> = ({ onLogin, onSwitchToRegister }) => {
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [resetLoading, setResetLoading] = useState(false);
   const [resetMessage, setResetMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+
+  // Dark theme colors
+  const colors = darkTheme.colors;
 
   const handleAdmissionNoChange = (value: string) => {
     setAdmissionNo(value);
@@ -116,7 +120,7 @@ const Login: React.FC<LoginProps> = ({ onLogin, onSwitchToRegister }) => {
       const data = await response.json();
       if (response.ok) {
         sessionStorage.setItem('drizaikn_user', JSON.stringify(data.user));
-        localStorage.removeItem('drizaikn_user'); // Clear old localStorage data
+        localStorage.removeItem('drizaikn_user');
         window.location.reload();
       } else {
         setSecurityMessage({ type: 'error', text: data.error || 'Login failed.' });
@@ -244,33 +248,63 @@ const Login: React.FC<LoginProps> = ({ onLogin, onSwitchToRegister }) => {
     setSecurityMessage(null);
   };
 
+  // Dark theme input styles
+  const inputStyle: React.CSSProperties = {
+    backgroundColor: colors.secondarySurface,
+    border: `1px solid ${colors.logoAccent}`,
+    borderRadius: darkTheme.borderRadius.input,
+    color: colors.primaryText,
+  };
+
+  const inputClassName = `block w-full pl-10 pr-3 py-2.5 rounded-lg placeholder:opacity-60 focus:outline-none focus:ring-2 focus:ring-[${colors.accent}]/30 focus:border-[${colors.accent}] transition-all uppercase`;
 
   // Security Question Login Modal
   if (showSecurityLogin) {
     return (
-      <div className="min-h-screen flex items-center justify-center p-4 sm:p-6 animate-fade-in-up relative">
-        <div className="glass-panel w-full max-w-md p-6 sm:p-8 rounded-2xl shadow-2xl border-white/40 relative">
+      <div 
+        className="min-h-screen flex items-center justify-center p-4 sm:p-6 animate-fade-in-up relative"
+        style={{ backgroundColor: colors.primaryBg }}
+      >
+        <div 
+          className="w-full max-w-md p-6 sm:p-8 rounded-2xl shadow-2xl relative"
+          style={{ 
+            backgroundColor: colors.secondarySurface,
+            border: `1px solid ${colors.logoAccent}`,
+          }}
+        >
           <button 
             onClick={() => { setShowSecurityLogin(false); resetSecurityLoginState(); }}
-            className="flex items-center gap-1 text-slate-500 hover:text-indigo-600 text-sm mb-6 transition-colors"
+            className="flex items-center gap-1 text-sm mb-6 transition-colors hover:opacity-80"
+            style={{ color: colors.mutedText }}
           >
             <ArrowLeft size={16} /> Back to Login
           </button>
 
           <div className="text-center mb-6">
-            <div className="inline-flex justify-center items-center w-16 h-16 bg-gradient-to-br from-green-100 to-emerald-100 rounded-full mb-4 shadow-inner">
-              <Shield size={28} className="text-green-600" />
+            <div 
+              className="inline-flex justify-center items-center w-16 h-16 rounded-full mb-4"
+              style={{ backgroundColor: colors.hoverBg }}
+            >
+              <Shield size={28} style={{ color: colors.accent }} />
             </div>
-            <h1 className="text-xl sm:text-2xl font-serif font-bold text-indigo-600">Login with Security Questions</h1>
-            <p className="text-slate-500 text-sm mt-1">Answer your security questions to login</p>
+            <h1 className="text-xl sm:text-2xl font-serif font-bold" style={{ color: colors.accent }}>
+              Login with Security Questions
+            </h1>
+            <p className="text-sm mt-1" style={{ color: colors.mutedText }}>
+              Answer your security questions to login
+            </p>
           </div>
 
           {securityMessage && (
-            <div className={`p-3 rounded-lg flex items-start gap-2 mb-4 ${
-              securityMessage.type === 'success' ? 'bg-green-50 border border-green-200' : 'bg-red-50 border border-red-200'
-            }`}>
-              {securityMessage.type === 'success' && <CheckCircle size={18} className="text-green-600 mt-0.5" />}
-              <p className={`text-sm ${securityMessage.type === 'success' ? 'text-green-700' : 'text-red-700'}`}>
+            <div 
+              className="p-3 rounded-lg flex items-start gap-2 mb-4"
+              style={{ 
+                backgroundColor: securityMessage.type === 'success' ? 'rgba(34, 197, 94, 0.1)' : 'rgba(239, 68, 68, 0.1)',
+                border: `1px solid ${securityMessage.type === 'success' ? '#22c55e' : '#ef4444'}`,
+              }}
+            >
+              {securityMessage.type === 'success' && <CheckCircle size={18} className="text-green-500 mt-0.5" />}
+              <p className={`text-sm ${securityMessage.type === 'success' ? 'text-green-400' : 'text-red-400'}`}>
                 {securityMessage.text}
               </p>
             </div>
@@ -279,32 +313,40 @@ const Login: React.FC<LoginProps> = ({ onLogin, onSwitchToRegister }) => {
           {securityStep === 'fetch' ? (
             <div className="space-y-4">
               <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-slate-600 uppercase tracking-wider">Admission Number / Staff ID</label>
+                <label className="text-xs font-semibold uppercase tracking-wider" style={{ color: colors.mutedText }}>
+                  Admission Number / Staff ID
+                </label>
                 <div className="relative group">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <User size={18} className="text-slate-400" />
+                    <User size={18} style={{ color: colors.mutedText }} />
                   </div>
                   <input
                     type="text"
                     value={securityAdmissionNo}
                     onChange={(e) => setSecurityAdmissionNo(e.target.value)}
                     placeholder="Enter your ID"
-                    className="block w-full pl-10 pr-3 py-2.5 bg-white/50 border border-slate-200 rounded-lg text-slate-700 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-600/20 focus:border-indigo-600 transition-all uppercase"
+                    className={inputClassName}
+                    style={{ ...inputStyle, paddingLeft: '2.5rem' }}
                   />
                 </div>
               </div>
               <button
                 onClick={fetchSecurityQuestionsForLogin}
                 disabled={securityLoading}
-                className="w-full flex items-center justify-center gap-2 py-3 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-semibold rounded-lg shadow-lg hover:shadow-xl hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-70"
+                className="w-full flex items-center justify-center gap-2 py-3 font-semibold rounded-lg shadow-lg hover:opacity-90 transition-all disabled:opacity-70"
+                style={{ backgroundColor: colors.accent, color: colors.primaryBg }}
               >
-                {securityLoading ? <div className="h-5 w-5 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <>Continue <ArrowRight size={18} /></>}
+                {securityLoading ? (
+                  <div className="h-5 w-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                ) : (
+                  <>Continue <ArrowRight size={18} /></>
+                )}
               </button>
             </div>
           ) : (
             <form onSubmit={handleSecurityLogin} className="space-y-4">
               <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-slate-600 flex items-center gap-1">
+                <label className="text-xs font-semibold flex items-center gap-1" style={{ color: colors.mutedText }}>
                   <HelpCircle size={14} /> {securityQuestions?.q1}
                 </label>
                 <input
@@ -312,12 +354,13 @@ const Login: React.FC<LoginProps> = ({ onLogin, onSwitchToRegister }) => {
                   value={securityAnswer1}
                   onChange={(e) => setSecurityAnswer1(e.target.value)}
                   placeholder="Your answer"
-                  className="block w-full px-3 py-2.5 bg-white/50 border border-slate-200 rounded-lg text-slate-700 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-600/20 focus:border-indigo-600 transition-all"
+                  className="block w-full px-3 py-2.5 rounded-lg placeholder:opacity-60 focus:outline-none focus:ring-2 transition-all"
+                  style={inputStyle}
                   required
                 />
               </div>
               <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-slate-600 flex items-center gap-1">
+                <label className="text-xs font-semibold flex items-center gap-1" style={{ color: colors.mutedText }}>
                   <HelpCircle size={14} /> {securityQuestions?.q2}
                 </label>
                 <input
@@ -325,16 +368,22 @@ const Login: React.FC<LoginProps> = ({ onLogin, onSwitchToRegister }) => {
                   value={securityAnswer2}
                   onChange={(e) => setSecurityAnswer2(e.target.value)}
                   placeholder="Your answer"
-                  className="block w-full px-3 py-2.5 bg-white/50 border border-slate-200 rounded-lg text-slate-700 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-600/20 focus:border-indigo-600 transition-all"
+                  className="block w-full px-3 py-2.5 rounded-lg placeholder:opacity-60 focus:outline-none focus:ring-2 transition-all"
+                  style={inputStyle}
                   required
                 />
               </div>
               <button
                 type="submit"
                 disabled={securityLoading}
-                className="w-full flex items-center justify-center gap-2 py-3 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-semibold rounded-lg shadow-lg hover:shadow-xl hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-70"
+                className="w-full flex items-center justify-center gap-2 py-3 font-semibold rounded-lg shadow-lg hover:opacity-90 transition-all disabled:opacity-70"
+                style={{ backgroundColor: colors.accent, color: colors.primaryBg }}
               >
-                {securityLoading ? <div className="h-5 w-5 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <>Login <ArrowRight size={18} /></>}
+                {securityLoading ? (
+                  <div className="h-5 w-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                ) : (
+                  <>Login <ArrowRight size={18} /></>
+                )}
               </button>
             </form>
           )}
@@ -346,21 +395,36 @@ const Login: React.FC<LoginProps> = ({ onLogin, onSwitchToRegister }) => {
   // Forgot Password Modal with Security Questions
   if (showForgotPassword) {
     return (
-      <div className="min-h-screen flex items-center justify-center p-4 sm:p-6 animate-fade-in-up relative">
-        <div className="glass-panel w-full max-w-md p-6 sm:p-8 rounded-2xl shadow-2xl border-white/40 relative">
+      <div 
+        className="min-h-screen flex items-center justify-center p-4 sm:p-6 animate-fade-in-up relative"
+        style={{ backgroundColor: colors.primaryBg }}
+      >
+        <div 
+          className="w-full max-w-md p-6 sm:p-8 rounded-2xl shadow-2xl relative"
+          style={{ 
+            backgroundColor: colors.secondarySurface,
+            border: `1px solid ${colors.logoAccent}`,
+          }}
+        >
           <button 
             onClick={() => { setShowForgotPassword(false); resetForgotPasswordState(); }}
-            className="flex items-center gap-1 text-slate-500 hover:text-indigo-600 text-sm mb-6 transition-colors"
+            className="flex items-center gap-1 text-sm mb-6 transition-colors hover:opacity-80"
+            style={{ color: colors.mutedText }}
           >
             <ArrowLeft size={16} /> Back to Login
           </button>
 
           <div className="text-center mb-6">
-            <div className="inline-flex justify-center items-center w-16 h-16 bg-gradient-to-br from-amber-100 to-orange-100 rounded-full mb-4 shadow-inner">
-              <Lock size={28} className="text-amber-600" />
+            <div 
+              className="inline-flex justify-center items-center w-16 h-16 rounded-full mb-4"
+              style={{ backgroundColor: colors.hoverBg }}
+            >
+              <Lock size={28} style={{ color: colors.accent }} />
             </div>
-            <h1 className="text-xl sm:text-2xl font-serif font-bold text-indigo-600">Reset Password</h1>
-            <p className="text-slate-500 text-sm mt-1">
+            <h1 className="text-xl sm:text-2xl font-serif font-bold" style={{ color: colors.accent }}>
+              Reset Password
+            </h1>
+            <p className="text-sm mt-1" style={{ color: colors.mutedText }}>
               {recoveryStep === 'enter-id' && 'Enter your admission number to continue'}
               {recoveryStep === 'answer-questions' && 'Answer your security questions'}
               {recoveryStep === 'reset-password' && 'Create a new password'}
@@ -371,21 +435,40 @@ const Login: React.FC<LoginProps> = ({ onLogin, onSwitchToRegister }) => {
           <div className="flex items-center justify-center gap-2 mb-6">
             {['enter-id', 'answer-questions', 'reset-password'].map((step, i) => (
               <div key={step} className="flex items-center">
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold ${
-                  recoveryStep === step ? 'bg-indigo-600 text-white' : 
-                  ['enter-id', 'answer-questions', 'reset-password'].indexOf(recoveryStep) > i ? 'bg-green-500 text-white' : 'bg-slate-200 text-slate-500'
-                }`}>{i + 1}</div>
-                {i < 2 && <div className={`w-8 h-1 ${['enter-id', 'answer-questions', 'reset-password'].indexOf(recoveryStep) > i ? 'bg-green-500' : 'bg-slate-200'}`} />}
+                <div 
+                  className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold"
+                  style={{
+                    backgroundColor: recoveryStep === step ? colors.accent : 
+                      ['enter-id', 'answer-questions', 'reset-password'].indexOf(recoveryStep) > i ? '#22c55e' : colors.hoverBg,
+                    color: recoveryStep === step || ['enter-id', 'answer-questions', 'reset-password'].indexOf(recoveryStep) > i 
+                      ? colors.primaryBg : colors.mutedText,
+                  }}
+                >
+                  {i + 1}
+                </div>
+                {i < 2 && (
+                  <div 
+                    className="w-8 h-1"
+                    style={{
+                      backgroundColor: ['enter-id', 'answer-questions', 'reset-password'].indexOf(recoveryStep) > i 
+                        ? '#22c55e' : colors.hoverBg,
+                    }}
+                  />
+                )}
               </div>
             ))}
           </div>
 
           {resetMessage && (
-            <div className={`p-3 rounded-lg flex items-start gap-2 mb-4 ${
-              resetMessage.type === 'success' ? 'bg-green-50 border border-green-200' : 'bg-red-50 border border-red-200'
-            }`}>
-              {resetMessage.type === 'success' && <CheckCircle size={18} className="text-green-600 mt-0.5" />}
-              <p className={`text-sm ${resetMessage.type === 'success' ? 'text-green-700' : 'text-red-700'}`}>
+            <div 
+              className="p-3 rounded-lg flex items-start gap-2 mb-4"
+              style={{ 
+                backgroundColor: resetMessage.type === 'success' ? 'rgba(34, 197, 94, 0.1)' : 'rgba(239, 68, 68, 0.1)',
+                border: `1px solid ${resetMessage.type === 'success' ? '#22c55e' : '#ef4444'}`,
+              }}
+            >
+              {resetMessage.type === 'success' && <CheckCircle size={18} className="text-green-500 mt-0.5" />}
+              <p className={`text-sm ${resetMessage.type === 'success' ? 'text-green-400' : 'text-red-400'}`}>
                 {resetMessage.text}
               </p>
             </div>
@@ -394,26 +477,34 @@ const Login: React.FC<LoginProps> = ({ onLogin, onSwitchToRegister }) => {
           {recoveryStep === 'enter-id' && (
             <div className="space-y-4">
               <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-slate-600 uppercase tracking-wider">Admission Number / Staff ID</label>
+                <label className="text-xs font-semibold uppercase tracking-wider" style={{ color: colors.mutedText }}>
+                  Admission Number / Staff ID
+                </label>
                 <div className="relative group">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <User size={18} className="text-slate-400" />
+                    <User size={18} style={{ color: colors.mutedText }} />
                   </div>
                   <input
                     type="text"
                     value={resetAdmissionNo}
                     onChange={(e) => setResetAdmissionNo(e.target.value)}
                     placeholder="Enter your ID"
-                    className="block w-full pl-10 pr-3 py-2.5 bg-white/50 border border-slate-200 rounded-lg text-slate-700 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-600/20 focus:border-indigo-600 transition-all uppercase"
+                    className={inputClassName}
+                    style={{ ...inputStyle, paddingLeft: '2.5rem' }}
                   />
                 </div>
               </div>
               <button
                 onClick={fetchSecurityQuestionsForReset}
                 disabled={resetLoading}
-                className="w-full flex items-center justify-center gap-2 py-3 bg-gradient-to-r from-amber-500 to-orange-500 text-white font-semibold rounded-lg shadow-lg hover:shadow-xl hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-70"
+                className="w-full flex items-center justify-center gap-2 py-3 font-semibold rounded-lg shadow-lg hover:opacity-90 transition-all disabled:opacity-70"
+                style={{ backgroundColor: colors.accent, color: colors.primaryBg }}
               >
-                {resetLoading ? <div className="h-5 w-5 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <>Continue <ArrowRight size={18} /></>}
+                {resetLoading ? (
+                  <div className="h-5 w-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                ) : (
+                  <>Continue <ArrowRight size={18} /></>
+                )}
               </button>
             </div>
           )}
@@ -421,7 +512,7 @@ const Login: React.FC<LoginProps> = ({ onLogin, onSwitchToRegister }) => {
           {recoveryStep === 'answer-questions' && (
             <div className="space-y-4">
               <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-slate-600 flex items-center gap-1">
+                <label className="text-xs font-semibold flex items-center gap-1" style={{ color: colors.mutedText }}>
                   <HelpCircle size={14} /> {resetQuestions?.q1}
                 </label>
                 <input
@@ -429,11 +520,12 @@ const Login: React.FC<LoginProps> = ({ onLogin, onSwitchToRegister }) => {
                   value={resetAnswer1}
                   onChange={(e) => setResetAnswer1(e.target.value)}
                   placeholder="Your answer"
-                  className="block w-full px-3 py-2.5 bg-white/50 border border-slate-200 rounded-lg text-slate-700 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-600/20 focus:border-indigo-600 transition-all"
+                  className="block w-full px-3 py-2.5 rounded-lg placeholder:opacity-60 focus:outline-none focus:ring-2 transition-all"
+                  style={inputStyle}
                 />
               </div>
               <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-slate-600 flex items-center gap-1">
+                <label className="text-xs font-semibold flex items-center gap-1" style={{ color: colors.mutedText }}>
                   <HelpCircle size={14} /> {resetQuestions?.q2}
                 </label>
                 <input
@@ -441,15 +533,21 @@ const Login: React.FC<LoginProps> = ({ onLogin, onSwitchToRegister }) => {
                   value={resetAnswer2}
                   onChange={(e) => setResetAnswer2(e.target.value)}
                   placeholder="Your answer"
-                  className="block w-full px-3 py-2.5 bg-white/50 border border-slate-200 rounded-lg text-slate-700 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-600/20 focus:border-indigo-600 transition-all"
+                  className="block w-full px-3 py-2.5 rounded-lg placeholder:opacity-60 focus:outline-none focus:ring-2 transition-all"
+                  style={inputStyle}
                 />
               </div>
               <button
                 onClick={verifySecurityAnswers}
                 disabled={resetLoading}
-                className="w-full flex items-center justify-center gap-2 py-3 bg-gradient-to-r from-amber-500 to-orange-500 text-white font-semibold rounded-lg shadow-lg hover:shadow-xl hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-70"
+                className="w-full flex items-center justify-center gap-2 py-3 font-semibold rounded-lg shadow-lg hover:opacity-90 transition-all disabled:opacity-70"
+                style={{ backgroundColor: colors.accent, color: colors.primaryBg }}
               >
-                {resetLoading ? <div className="h-5 w-5 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <>Verify Answers <ArrowRight size={18} /></>}
+                {resetLoading ? (
+                  <div className="h-5 w-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                ) : (
+                  <>Verify Answers <ArrowRight size={18} /></>
+                )}
               </button>
             </div>
           )}
@@ -457,36 +555,47 @@ const Login: React.FC<LoginProps> = ({ onLogin, onSwitchToRegister }) => {
           {recoveryStep === 'reset-password' && (
             <form onSubmit={handleResetPassword} className="space-y-4">
               <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-slate-600 uppercase tracking-wider">New Password</label>
+                <label className="text-xs font-semibold uppercase tracking-wider" style={{ color: colors.mutedText }}>
+                  New Password
+                </label>
                 <div className="relative group">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <Lock size={18} className="text-slate-400" />
+                    <Lock size={18} style={{ color: colors.mutedText }} />
                   </div>
                   <input
                     type={showNewPassword ? "text" : "password"}
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
                     placeholder="Enter new password"
-                    className="block w-full pl-10 pr-10 py-2.5 bg-white/50 border border-slate-200 rounded-lg text-slate-700 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-600/20 focus:border-indigo-600 transition-all"
+                    className="block w-full pl-10 pr-10 py-2.5 rounded-lg placeholder:opacity-60 focus:outline-none focus:ring-2 transition-all"
+                    style={inputStyle}
                     required
                   />
-                  <button type="button" onClick={() => setShowNewPassword(!showNewPassword)} className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600">
+                  <button 
+                    type="button" 
+                    onClick={() => setShowNewPassword(!showNewPassword)} 
+                    className="absolute inset-y-0 right-0 pr-3 flex items-center hover:opacity-80"
+                    style={{ color: colors.mutedText }}
+                  >
                     {showNewPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                   </button>
                 </div>
               </div>
               <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-slate-600 uppercase tracking-wider">Confirm New Password</label>
+                <label className="text-xs font-semibold uppercase tracking-wider" style={{ color: colors.mutedText }}>
+                  Confirm New Password
+                </label>
                 <div className="relative group">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <Lock size={18} className="text-slate-400" />
+                    <Lock size={18} style={{ color: colors.mutedText }} />
                   </div>
                   <input
                     type="password"
                     value={confirmNewPassword}
                     onChange={(e) => setConfirmNewPassword(e.target.value)}
                     placeholder="Confirm new password"
-                    className="block w-full pl-10 pr-3 py-2.5 bg-white/50 border border-slate-200 rounded-lg text-slate-700 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-600/20 focus:border-indigo-600 transition-all"
+                    className="block w-full pl-10 pr-3 py-2.5 rounded-lg placeholder:opacity-60 focus:outline-none focus:ring-2 transition-all"
+                    style={inputStyle}
                     required
                   />
                 </div>
@@ -494,9 +603,14 @@ const Login: React.FC<LoginProps> = ({ onLogin, onSwitchToRegister }) => {
               <button
                 type="submit"
                 disabled={resetLoading}
-                className="w-full flex items-center justify-center gap-2 py-3 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-semibold rounded-lg shadow-lg hover:shadow-xl hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-70"
+                className="w-full flex items-center justify-center gap-2 py-3 font-semibold rounded-lg shadow-lg hover:opacity-90 transition-all disabled:opacity-70"
+                style={{ backgroundColor: colors.accent, color: colors.primaryBg }}
               >
-                {resetLoading ? <div className="h-5 w-5 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <>Reset Password <CheckCircle size={18} /></>}
+                {resetLoading ? (
+                  <div className="h-5 w-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                ) : (
+                  <>Reset Password <CheckCircle size={18} /></>
+                )}
               </button>
             </form>
           )}
@@ -505,15 +619,14 @@ const Login: React.FC<LoginProps> = ({ onLogin, onSwitchToRegister }) => {
     );
   }
 
-
   // Drizaikn Logo SVG Component - Geometric interlocking D design matching brand identity
   const DrizaiknLogo: React.FC<{ className?: string }> = ({ className = "h-20 w-20" }) => (
     <svg className={className} viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
       <defs>
         <linearGradient id="loginLogoGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="#94a3b8" />
-          <stop offset="50%" stopColor="#64748b" />
-          <stop offset="100%" stopColor="#475569" />
+          <stop offset="0%" stopColor={colors.mutedText} />
+          <stop offset="50%" stopColor={colors.logoAccent} />
+          <stop offset="100%" stopColor={colors.accent} />
         </linearGradient>
       </defs>
       {/* Left D shape - outer */}
@@ -543,79 +656,162 @@ const Login: React.FC<LoginProps> = ({ onLogin, onSwitchToRegister }) => {
 
   // Main Login Form
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 sm:p-6 animate-fade-in-up relative overflow-hidden"
-         style={{
-           background: 'linear-gradient(135deg, #1e1b4b 0%, #312e81 25%, #4c1d95 50%, #6d28d9 75%, #7c3aed 100%)'
-         }}>
+    <div 
+      className="min-h-screen flex items-center justify-center p-4 sm:p-6 animate-fade-in-up relative overflow-hidden"
+      style={{ backgroundColor: colors.primaryBg }}
+    >
       {/* Modern geometric background */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-0 left-0 w-96 h-96 bg-indigo-500/20 rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2" />
-        <div className="absolute bottom-0 right-0 w-96 h-96 bg-purple-500/20 rounded-full blur-3xl translate-x-1/2 translate-y-1/2" />
-        <div className="absolute top-1/2 left-1/2 w-64 h-64 bg-violet-500/10 rounded-full blur-2xl -translate-x-1/2 -translate-y-1/2" />
+        <div 
+          className="absolute top-0 left-0 w-96 h-96 rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2"
+          style={{ backgroundColor: `${colors.accent}20` }}
+        />
+        <div 
+          className="absolute bottom-0 right-0 w-96 h-96 rounded-full blur-3xl translate-x-1/2 translate-y-1/2"
+          style={{ backgroundColor: `${colors.accent}15` }}
+        />
+        <div 
+          className="absolute top-1/2 left-1/2 w-64 h-64 rounded-full blur-2xl -translate-x-1/2 -translate-y-1/2"
+          style={{ backgroundColor: `${colors.logoAccent}10` }}
+        />
       </div>
       
       {/* Floating geometric shapes */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
-        <div className="absolute top-20 left-10 w-20 h-20 border border-white/10 rounded-2xl rotate-12 animate-pulse" />
-        <div className="absolute top-40 right-20 w-16 h-16 border border-white/10 rounded-full animate-pulse" style={{ animationDelay: '1s' }} />
-        <div className="absolute bottom-32 left-1/4 w-24 h-24 border border-white/10 rounded-3xl -rotate-12 animate-pulse" style={{ animationDelay: '2s' }} />
-        <div className="absolute bottom-20 right-10 w-12 h-12 border border-white/10 rounded-xl rotate-45 animate-pulse" style={{ animationDelay: '0.5s' }} />
+        <div 
+          className="absolute top-20 left-10 w-20 h-20 rounded-2xl rotate-12 animate-pulse"
+          style={{ border: `1px solid ${colors.logoAccent}20` }}
+        />
+        <div 
+          className="absolute top-40 right-20 w-16 h-16 rounded-full animate-pulse"
+          style={{ border: `1px solid ${colors.logoAccent}20`, animationDelay: '1s' }}
+        />
+        <div 
+          className="absolute bottom-32 left-1/4 w-24 h-24 rounded-3xl -rotate-12 animate-pulse"
+          style={{ border: `1px solid ${colors.logoAccent}20`, animationDelay: '2s' }}
+        />
+        <div 
+          className="absolute bottom-20 right-10 w-12 h-12 rounded-xl rotate-45 animate-pulse"
+          style={{ border: `1px solid ${colors.logoAccent}20`, animationDelay: '0.5s' }}
+        />
       </div>
       
-      <div className="glass-panel w-full max-w-md p-6 sm:p-8 rounded-3xl shadow-2xl border border-white/20 relative backdrop-blur-xl bg-white/95">
+      <div 
+        className="w-full max-w-md p-6 sm:p-8 rounded-3xl shadow-2xl relative backdrop-blur-xl"
+        style={{ 
+          backgroundColor: colors.secondarySurface,
+          border: `1px solid ${colors.logoAccent}40`,
+        }}
+      >
         <div className="text-center mb-6 sm:mb-8">
-          <div className="inline-flex justify-center items-center w-28 h-28 sm:w-36 sm:h-36 bg-gradient-to-br from-slate-50 via-slate-100 to-slate-50 rounded-3xl mb-4 shadow-lg shadow-slate-200/50 relative">
+          <div 
+            className="inline-flex justify-center items-center w-28 h-28 sm:w-36 sm:h-36 rounded-3xl mb-4 shadow-lg relative"
+            style={{ backgroundColor: colors.hoverBg }}
+          >
             <DrizaiknLogo className="h-16 w-16 sm:h-20 sm:w-20" />
-            <div className="absolute inset-0 bg-gradient-to-br from-slate-500/5 to-slate-600/5 rounded-3xl" />
           </div>
-          <h1 className="text-xl sm:text-2xl font-bold text-slate-700 tracking-widest uppercase">DRIZAIKN</h1>
-          <p className="text-slate-400 text-xs mt-1 tracking-wider uppercase">Architect of Knowledge</p>
+          <h1 
+            className="text-xl sm:text-2xl font-bold tracking-widest uppercase"
+            style={{ color: colors.primaryText }}
+          >
+            DRIZAIKN
+          </h1>
+          <p 
+            className="text-xs mt-1 tracking-wider uppercase"
+            style={{ color: colors.mutedText }}
+          >
+            Architect of Knowledge
+          </p>
         </div>
 
         {/* Role Selection */}
         <div className="mb-5 sm:mb-6">
-          <label className="text-xs font-semibold text-slate-600 uppercase tracking-wider mb-3 block">I am a:</label>
+          <label 
+            className="text-xs font-semibold uppercase tracking-wider mb-3 block"
+            style={{ color: colors.mutedText }}
+          >
+            I am a:
+          </label>
           <div className="grid grid-cols-3 gap-2">
             <button
               type="button"
               onClick={() => setSelectedRole('student')}
-              className={`p-2 sm:p-3 rounded-2xl border-2 transition-all ${
-                selectedRole === 'student' ? 'border-indigo-500 bg-indigo-50 shadow-lg shadow-indigo-100' : 'border-slate-200 hover:border-slate-300 bg-white'
-              }`}
+              className="p-2 sm:p-3 rounded-2xl transition-all"
+              style={{
+                backgroundColor: selectedRole === 'student' ? `${colors.accent}20` : colors.hoverBg,
+                border: `2px solid ${selectedRole === 'student' ? colors.accent : colors.logoAccent}40`,
+              }}
             >
               <div className="flex flex-col items-center gap-1 sm:gap-2">
-                <div className={`p-1.5 sm:p-2 rounded-xl ${selectedRole === 'student' ? 'bg-gradient-to-br from-indigo-500 to-purple-600 text-white' : 'bg-slate-100 text-slate-400'}`}>
+                <div 
+                  className="p-1.5 sm:p-2 rounded-xl"
+                  style={{ 
+                    backgroundColor: selectedRole === 'student' ? colors.accent : colors.secondarySurface,
+                    color: selectedRole === 'student' ? colors.primaryBg : colors.mutedText,
+                  }}
+                >
                   <GraduationCap size={18} />
                 </div>
-                <span className={`font-semibold text-[10px] sm:text-xs ${selectedRole === 'student' ? 'text-indigo-600' : 'text-slate-600'}`}>Student</span>
+                <span 
+                  className="font-semibold text-[10px] sm:text-xs"
+                  style={{ color: selectedRole === 'student' ? colors.accent : colors.mutedText }}
+                >
+                  Student
+                </span>
               </div>
             </button>
             <button
               type="button"
               onClick={() => setSelectedRole('lecturer')}
-              className={`p-2 sm:p-3 rounded-2xl border-2 transition-all ${
-                selectedRole === 'lecturer' ? 'border-emerald-500 bg-emerald-50 shadow-lg shadow-emerald-100' : 'border-slate-200 hover:border-slate-300 bg-white'
-              }`}
+              className="p-2 sm:p-3 rounded-2xl transition-all"
+              style={{
+                backgroundColor: selectedRole === 'lecturer' ? `${colors.accent}20` : colors.hoverBg,
+                border: `2px solid ${selectedRole === 'lecturer' ? colors.accent : colors.logoAccent}40`,
+              }}
             >
               <div className="flex flex-col items-center gap-1 sm:gap-2">
-                <div className={`p-1.5 sm:p-2 rounded-xl ${selectedRole === 'lecturer' ? 'bg-gradient-to-br from-emerald-500 to-teal-600 text-white' : 'bg-slate-100 text-slate-400'}`}>
+                <div 
+                  className="p-1.5 sm:p-2 rounded-xl"
+                  style={{ 
+                    backgroundColor: selectedRole === 'lecturer' ? colors.accent : colors.secondarySurface,
+                    color: selectedRole === 'lecturer' ? colors.primaryBg : colors.mutedText,
+                  }}
+                >
                   <BookOpen size={18} />
                 </div>
-                <span className={`font-semibold text-[10px] sm:text-xs ${selectedRole === 'lecturer' ? 'text-emerald-600' : 'text-slate-600'}`}>Lecturer</span>
+                <span 
+                  className="font-semibold text-[10px] sm:text-xs"
+                  style={{ color: selectedRole === 'lecturer' ? colors.accent : colors.mutedText }}
+                >
+                  Lecturer
+                </span>
               </div>
             </button>
             <button
               type="button"
               onClick={() => setSelectedRole('admin')}
-              className={`p-2 sm:p-3 rounded-2xl border-2 transition-all ${
-                selectedRole === 'admin' ? 'border-amber-500 bg-amber-50 shadow-lg shadow-amber-100' : 'border-slate-200 hover:border-slate-300 bg-white'
-              }`}
+              className="p-2 sm:p-3 rounded-2xl transition-all"
+              style={{
+                backgroundColor: selectedRole === 'admin' ? `${colors.accent}20` : colors.hoverBg,
+                border: `2px solid ${selectedRole === 'admin' ? colors.accent : colors.logoAccent}40`,
+              }}
             >
               <div className="flex flex-col items-center gap-1 sm:gap-2">
-                <div className={`p-1.5 sm:p-2 rounded-xl ${selectedRole === 'admin' ? 'bg-gradient-to-br from-amber-500 to-orange-600 text-white' : 'bg-slate-100 text-slate-400'}`}>
+                <div 
+                  className="p-1.5 sm:p-2 rounded-xl"
+                  style={{ 
+                    backgroundColor: selectedRole === 'admin' ? colors.accent : colors.secondarySurface,
+                    color: selectedRole === 'admin' ? colors.primaryBg : colors.mutedText,
+                  }}
+                >
                   <Briefcase size={18} />
                 </div>
-                <span className={`font-semibold text-[10px] sm:text-xs ${selectedRole === 'admin' ? 'text-amber-600' : 'text-slate-600'}`}>Staff</span>
+                <span 
+                  className="font-semibold text-[10px] sm:text-xs"
+                  style={{ color: selectedRole === 'admin' ? colors.accent : colors.mutedText }}
+                >
+                  Staff
+                </span>
               </div>
             </button>
           </div>
@@ -623,25 +819,38 @@ const Login: React.FC<LoginProps> = ({ onLogin, onSwitchToRegister }) => {
 
         <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-5">
           {validationError && (
-            <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
-              <p className="text-xs text-red-700">{validationError}</p>
+            <div 
+              className="p-3 rounded-lg"
+              style={{ 
+                backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                border: '1px solid #ef4444',
+              }}
+            >
+              <p className="text-xs text-red-400">{validationError}</p>
             </div>
           )}
           
           <div className="space-y-1.5">
-            <label className="text-xs font-semibold text-slate-600 uppercase tracking-wider">
+            <label 
+              className="text-xs font-semibold uppercase tracking-wider"
+              style={{ color: colors.mutedText }}
+            >
               {selectedRole === 'student' ? 'Admission Number' : selectedRole === 'lecturer' ? 'Staff ID' : 'Employee ID'}
             </label>
             <div className="relative group">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <User size={18} className="text-slate-400 group-focus-within:text-indigo-600 transition-colors" />
+                <User size={18} style={{ color: colors.mutedText }} />
               </div>
               <input
                 type="text"
                 value={admissionNo}
                 onChange={(e) => handleAdmissionNoChange(e.target.value)}
                 placeholder={selectedRole === 'student' ? 'Enter admission number' : selectedRole === 'lecturer' ? 'LEC-001' : 'LIB-STAFF-001'}
-                className="block w-full pl-10 pr-3 py-2.5 bg-white/50 border border-slate-200 rounded-lg text-slate-700 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-600/20 focus:border-indigo-600 transition-all uppercase"
+                className="block w-full pl-10 pr-3 py-2.5 rounded-lg placeholder:opacity-50 focus:outline-none focus:ring-2 transition-all uppercase"
+                style={{ 
+                  ...inputStyle,
+                  color: colors.primaryText,
+                }}
                 required
               />
             </div>
@@ -649,21 +858,35 @@ const Login: React.FC<LoginProps> = ({ onLogin, onSwitchToRegister }) => {
 
           <div className="space-y-1.5">
             <div className="flex items-center justify-between">
-              <label className="text-xs font-semibold text-slate-600 uppercase tracking-wider">Password</label>
-              <button type="button" onClick={() => setShowForgotPassword(true)} className="text-xs text-indigo-600 hover:text-purple-600 hover:underline transition-colors">
+              <label 
+                className="text-xs font-semibold uppercase tracking-wider"
+                style={{ color: colors.mutedText }}
+              >
+                Password
+              </label>
+              <button 
+                type="button" 
+                onClick={() => setShowForgotPassword(true)} 
+                className="text-xs hover:underline transition-colors"
+                style={{ color: colors.accent }}
+              >
                 Forgot Password?
               </button>
             </div>
             <div className="relative group">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <Lock size={18} className="text-slate-400 group-focus-within:text-indigo-600 transition-colors" />
+                <Lock size={18} style={{ color: colors.mutedText }} />
               </div>
               <input
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
-                className="block w-full pl-10 pr-3 py-2.5 bg-white/50 border border-slate-200 rounded-lg text-slate-700 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-600/20 focus:border-indigo-600 transition-all"
+                className="block w-full pl-10 pr-3 py-2.5 rounded-lg placeholder:opacity-50 focus:outline-none focus:ring-2 transition-all"
+                style={{ 
+                  ...inputStyle,
+                  color: colors.primaryText,
+                }}
                 required
               />
             </div>
@@ -672,14 +895,20 @@ const Login: React.FC<LoginProps> = ({ onLogin, onSwitchToRegister }) => {
           <button
             type="submit"
             disabled={isLoading}
-            className={`w-full flex items-center justify-center gap-2 py-3 font-semibold rounded-xl shadow-lg hover:shadow-xl hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-70 disabled:cursor-not-allowed ${
-              selectedRole === 'admin' ? 'bg-gradient-to-r from-amber-500 to-orange-600 text-white shadow-amber-200' :
-              selectedRole === 'lecturer' ? 'bg-gradient-to-r from-emerald-500 to-teal-600 text-white shadow-emerald-200' :
-              'bg-gradient-to-r from-indigo-500 to-purple-600 text-white shadow-indigo-200'
-            }`}
+            className="w-full flex items-center justify-center gap-2 py-3 font-semibold rounded-xl shadow-lg hover:opacity-90 hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-70 disabled:cursor-not-allowed"
+            style={{ 
+              backgroundColor: colors.accent, 
+              color: colors.primaryBg,
+              boxShadow: `0 4px 14px ${colors.accent}40`,
+            }}
           >
-            {isLoading ? <div className="h-5 w-5 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : (
-              <>{selectedRole === 'admin' ? 'Access Admin Panel' : selectedRole === 'lecturer' ? 'Access Portal' : 'Log In'} <ArrowRight size={18} /></>
+            {isLoading ? (
+              <div className="h-5 w-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+            ) : (
+              <>
+                {selectedRole === 'admin' ? 'Access Admin Panel' : selectedRole === 'lecturer' ? 'Access Portal' : 'Log In'} 
+                <ArrowRight size={18} />
+              </>
             )}
           </button>
         </form>
@@ -688,22 +917,30 @@ const Login: React.FC<LoginProps> = ({ onLogin, onSwitchToRegister }) => {
         <div className="mt-4 text-center">
           <button
             onClick={() => setShowSecurityLogin(true)}
-            className="text-xs text-slate-500 hover:text-indigo-600 transition-colors flex items-center justify-center gap-1 mx-auto"
+            className="text-xs transition-colors flex items-center justify-center gap-1 mx-auto hover:opacity-80"
+            style={{ color: colors.mutedText }}
           >
             <Shield size={14} /> Login with Security Questions
           </button>
         </div>
 
-        <div className="mt-6 pt-5 border-t border-slate-200/60 text-center">
+        <div 
+          className="mt-6 pt-5 text-center"
+          style={{ borderTop: `1px solid ${colors.logoAccent}30` }}
+        >
           {selectedRole === 'student' ? (
-            <p className="text-slate-500 text-sm">
+            <p className="text-sm" style={{ color: colors.mutedText }}>
               New student?{' '}
-              <button onClick={onSwitchToRegister} className="text-indigo-600 font-semibold hover:underline hover:text-purple-600 transition-colors">
+              <button 
+                onClick={onSwitchToRegister} 
+                className="font-semibold hover:underline transition-colors"
+                style={{ color: colors.accent }}
+              >
                 Create Account
               </button>
             </p>
           ) : (
-            <p className="text-slate-500 text-sm">
+            <p className="text-sm" style={{ color: colors.mutedText }}>
               {selectedRole === 'lecturer' ? 'Lecturer' : 'Library staff'} accounts are created by the system administrator.
             </p>
           )}
