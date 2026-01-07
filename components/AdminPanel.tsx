@@ -371,7 +371,12 @@ const AdminPanel: React.FC = () => {
           isbn: editingBook.isbn,
           publishedYear: editingBook.publishedYear,
           totalCopies: editingBook.totalCopies,
-          copiesAvailable: editingBook.copiesAvailable
+          copiesAvailable: editingBook.copiesAvailable,
+          callNumber: editingBook.callNumber,
+          shelfLocation: editingBook.shelfLocation,
+          floorNumber: editingBook.floorNumber,
+          softCopyUrl: editingBook.softCopyUrl,
+          hasSoftCopy: editingBook.hasSoftCopy
         })
       });
 

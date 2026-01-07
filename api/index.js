@@ -1567,7 +1567,7 @@ app.put('/api/admin/books/:bookId', async (req, res) => {
   const { bookId } = req.params;
   const { title, author, categoryId, coverUrl, description, isbn, publishedYear, totalCopies, copiesAvailable, callNumber, shelfLocation, floorNumber, softCopyUrl, hasSoftCopy } = req.body;
   try {
-    const updateData = { updated_at: new Date().toISOString() };
+    const updateData = {};
     if (title) updateData.title = title;
     if (author) updateData.author = author;
     if (categoryId) updateData.category_id = categoryId;
@@ -1583,11 +1583,17 @@ app.put('/api/admin/books/:bookId', async (req, res) => {
     if (softCopyUrl !== undefined) updateData.soft_copy_url = softCopyUrl;
     if (hasSoftCopy !== undefined) updateData.has_soft_copy = hasSoftCopy;
     
+    console.log('Updating book:', bookId, 'with data:', updateData);
+    
     const { data, error } = await supabase.from('books').update(updateData).eq('id', bookId).select().single();
-    if (error) throw error;
+    if (error) {
+      console.error('Supabase update error:', error);
+      throw error;
+    }
     res.json({ success: true, book: data });
   } catch (err) {
-    res.status(500).json({ error: 'Failed to update book' });
+    console.error('Update book error:', err);
+    res.status(500).json({ error: err.message || 'Failed to update book' });
   }
 });
 
