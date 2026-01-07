@@ -2247,8 +2247,8 @@ const BookFormModal: React.FC<BookFormModalProps> = ({
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Validate file type
-    if (file.type !== 'application/pdf') {
+    // Validate file type - be more lenient for mobile browsers
+    if (!file.type.includes('pdf') && !file.name.toLowerCase().endsWith('.pdf')) {
       setPdfUploadError('Please select a PDF file');
       return;
     }
@@ -2257,6 +2257,11 @@ const BookFormModal: React.FC<BookFormModalProps> = ({
     if (file.size > 50 * 1024 * 1024) {
       setPdfUploadError('File size must be less than 50MB');
       return;
+    }
+
+    // Warn for large files on mobile
+    if (file.size > 10 * 1024 * 1024) {
+      console.log('Large file detected, upload may take longer on mobile');
     }
 
     setUploadingPdf(true);
@@ -2270,27 +2275,41 @@ const BookFormModal: React.FC<BookFormModalProps> = ({
 
       // Read file as base64
       const reader = new FileReader();
+      
       reader.onload = async () => {
         try {
-          const base64Data = (reader.result as string).split(',')[1];
+          const result = reader.result as string;
+          if (!result || !result.includes(',')) {
+            throw new Error('Failed to read file data');
+          }
+          const base64Data = result.split(',')[1];
+          if (!base64Data) {
+            throw new Error('Invalid file data');
+          }
           await handlePdfUploadWithAi(file, base64Data, fileName);
-        } catch (err) {
+        } catch (err: any) {
           console.error('PDF upload error:', err);
-          setPdfUploadError('Failed to upload PDF. Please try again.');
+          setPdfUploadError(err.message || 'Failed to upload PDF. Please try again.');
         } finally {
           setUploadingPdf(false);
         }
       };
       
-      reader.onerror = () => {
-        setPdfUploadError('Failed to read file');
+      reader.onerror = (error) => {
+        console.error('FileReader error:', error);
+        setPdfUploadError('Failed to read file. Try a smaller file or use a desktop browser.');
+        setUploadingPdf(false);
+      };
+
+      reader.onabort = () => {
+        setPdfUploadError('File reading was cancelled');
         setUploadingPdf(false);
       };
       
       reader.readAsDataURL(file);
-    } catch (err) {
+    } catch (err: any) {
       console.error('PDF upload error:', err);
-      setPdfUploadError('Failed to upload PDF. Please try again.');
+      setPdfUploadError(err.message || 'Failed to upload PDF. Please try again.');
       setUploadingPdf(false);
     }
   };

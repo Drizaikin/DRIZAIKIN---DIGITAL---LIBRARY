@@ -199,12 +199,19 @@ const BookDetailsModal: React.FC<BookDetailsModalProps> = ({ book, onClose, user
                     rel="noopener noreferrer"
                     className="flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-lg hover:shadow-lg transition-all font-semibold"
                   >
+                    <ExternalLink size={18} />
+                    View PDF Online
+                  </a>
+                  <a
+                    href={book.softCopyUrl}
+                    download={`${book.title.replace(/[^a-zA-Z0-9]/g, '_')}.pdf`}
+                    className="flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-lg hover:shadow-lg transition-all font-semibold"
+                  >
                     <Download size={18} />
-                    Open Soft Copy
-                    <ExternalLink size={14} />
+                    Download PDF
                   </a>
                   <p className="text-xs text-center text-slate-500">
-                    Digital version available - opens in new tab
+                    Digital version available
                   </p>
                 </div>
               )}
