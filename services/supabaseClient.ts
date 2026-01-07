@@ -11,7 +11,15 @@ let supabase: SupabaseClient | null = null;
 
 // Initialize Supabase client only if credentials are available
 if (supabaseUrl && supabaseAnonKey) {
-  supabase = createClient(supabaseUrl, supabaseAnonKey);
+  try {
+    supabase = createClient(supabaseUrl, supabaseAnonKey);
+    console.log('Supabase client initialized for direct uploads (up to 50MB)');
+  } catch (err) {
+    console.error('Failed to initialize Supabase client:', err);
+  }
+} else {
+  console.warn('Supabase direct upload not available. Missing VITE_SUPABASE_URL or VITE_SUPABASE_ANON_KEY.');
+  console.warn('Add these to your Vercel environment variables for 50MB upload support.');
 }
 
 export { supabase };
@@ -30,6 +38,8 @@ export async function uploadPdfToSupabase(file: File): Promise<{ url: string; pa
   const fileName = `${timestamp}_${sanitizedName}`;
 
   try {
+    console.log('Uploading to Supabase Storage:', fileName, 'Size:', (file.size / 1024 / 1024).toFixed(2) + 'MB');
+    
     // Upload directly to Supabase Storage
     const { data, error } = await supabase.storage
       .from('book-pdfs')
@@ -48,6 +58,8 @@ export async function uploadPdfToSupabase(file: File): Promise<{ url: string; pa
       .from('book-pdfs')
       .getPublicUrl(fileName);
 
+    console.log('Upload successful:', urlData.publicUrl);
+    
     return {
       url: urlData.publicUrl,
       path: data.path
@@ -60,5 +72,9 @@ export async function uploadPdfToSupabase(file: File): Promise<{ url: string; pa
 
 // Check if direct Supabase upload is available
 export function isDirectUploadAvailable(): boolean {
-  return supabase !== null;
+  const available = supabase !== null;
+  if (!available) {
+    console.log('Direct Supabase upload not available - will use API fallback (4MB limit)');
+  }
+  return available;
 }

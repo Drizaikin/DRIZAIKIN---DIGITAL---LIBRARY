@@ -2378,7 +2378,7 @@ const BookFormModal: React.FC<BookFormModalProps> = ({
 
       // Fallback to API upload for smaller files (if direct upload not available)
       if (file.size > 4 * 1024 * 1024) {
-        setPdfUploadError('Direct upload not available. File is too large for API upload (max 4MB). Please configure VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY for larger uploads.');
+        setPdfUploadError('File too large (max 4MB via API). To upload larger files (up to 50MB), add VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY to Vercel environment variables, or paste a Google Drive/Dropbox URL below.');
         setUploadingPdf(false);
         return;
       }
@@ -2865,16 +2865,18 @@ const BookFormModal: React.FC<BookFormModalProps> = ({
                 border: `1px solid ${theme.colors.logoAccent}40`,
                 color: theme.colors.primaryText
               }}
+              disabled={uploadingPdf || aiLoading}
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="flex-1 px-4 py-2.5 text-white rounded-lg transition-colors flex items-center justify-center gap-2"
+              disabled={uploadingPdf || aiLoading}
+              className="flex-1 px-4 py-2.5 text-white rounded-lg transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
               style={{ backgroundColor: theme.colors.accent }}
             >
               <Save size={18} />
-              {isEdit ? 'Save Changes' : 'Add Book'}
+              {uploadingPdf ? 'Uploading...' : aiLoading ? 'Processing...' : isEdit ? 'Save Changes' : 'Add Book'}
             </button>
           </div>
         </form>
