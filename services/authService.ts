@@ -5,25 +5,23 @@ const API_URL = (typeof import.meta !== 'undefined' && import.meta.env?.VITE_API
 export interface AuthUser {
   id: string;
   name: string;
-  admissionNo: string;
-  role: 'Student' | 'Lecturer' | 'Faculty' | 'Admin';
+  username: string;
+  role: 'Reader' | 'Premium' | 'Admin';
   avatarUrl: string;
-  course?: string;
   email?: string;
 }
 
 export interface LoginCredentials {
-  admissionNo: string;
+  username: string;
   password: string;
-  loginAs?: 'student' | 'lecturer' | 'admin';
+  loginAs?: 'reader' | 'premium' | 'admin';
 }
 
 export interface RegisterData {
   name: string;
   email: string;
-  admissionNo: string;
+  username: string;
   password: string;
-  course?: string;
   securityQuestion1?: string;
   securityAnswer1?: string;
   securityQuestion2?: string;

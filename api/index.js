@@ -103,11 +103,11 @@ Be helpful, concise, and professional.`;
 // --- AUTH ROUTES ---
 app.post('/api/auth/register', async (req, res) => {
   if (checkDb(res)) return;
-  const { name, email, admissionNo, password, course, securityQuestion1, securityAnswer1, securityQuestion2, securityAnswer2 } = req.body;
+  const { name, email, username, password, securityQuestion1, securityAnswer1, securityQuestion2, securityAnswer2 } = req.body;
 
   // Validate required fields
-  if (!name || !email || !admissionNo || !password) {
-    return res.status(400).json({ error: 'Name, email, admission number, and password are required.' });
+  if (!name || !email || !username || !password) {
+    return res.status(400).json({ error: 'Name, email, username, and password are required.' });
   }
 
   try {
@@ -115,7 +115,7 @@ app.post('/api/auth/register', async (req, res) => {
     const { data: existingUser, error: checkError } = await supabase
       .from('users')
       .select('id')
-      .eq('admission_no', admissionNo)
+      .eq('username', username)
       .single();
 
     if (checkError && checkError.code !== 'PGRST116') {
@@ -124,7 +124,7 @@ app.post('/api/auth/register', async (req, res) => {
     }
 
     if (existingUser) {
-      return res.status(400).json({ error: 'Admission number already registered.' });
+      return res.status(400).json({ error: 'Username already registered.' });
     }
 
     const salt = await bcrypt.genSalt(10);
@@ -139,11 +139,10 @@ app.post('/api/auth/register', async (req, res) => {
     const insertData = { 
       name, 
       email, 
-      admission_no: admissionNo, 
+      username: username, 
       password_hash: passwordHash, 
       avatar_url: avatarUrl, 
-      course: course || null, 
-      role: 'Student'
+      role: 'Reader'
     };
 
     // Only add security fields if they were provided
@@ -152,7 +151,7 @@ app.post('/api/auth/register', async (req, res) => {
     if (securityQuestion2) insertData.security_question_2 = securityQuestion2;
     if (answer2Hash) insertData.security_answer_2 = answer2Hash;
 
-    console.log('Attempting to register user:', { name, email, admissionNo, course });
+    console.log('Attempting to register user:', { name, email, username });
 
     const { data, error } = await supabase
       .from('users')
@@ -168,7 +167,7 @@ app.post('/api/auth/register', async (req, res) => {
     console.log('User registered successfully:', data.id);
 
     res.status(201).json({ 
-      user: { id: data.id, name: data.name, admissionNo: data.admission_no, role: data.role, avatarUrl: data.avatar_url, course: data.course } 
+      user: { id: data.id, name: data.name, username: data.username, role: data.role, avatarUrl: data.avatar_url } 
     });
   } catch (err) {
     console.error("Register Error:", err);
@@ -177,15 +176,15 @@ app.post('/api/auth/register', async (req, res) => {
 });
 
 // Get security questions for a user (without answers)
-app.get('/api/auth/security-questions/:admissionNo', async (req, res) => {
+app.get('/api/auth/security-questions/:username', async (req, res) => {
   if (checkDb(res)) return;
-  const { admissionNo } = req.params;
+  const { username } = req.params;
 
   try {
     const { data: user, error } = await supabase
       .from('users')
       .select('security_question_1, security_question_2')
-      .eq('admission_no', admissionNo)
+      .eq('username', username)
       .single();
 
     if (error || !user) {
@@ -211,13 +210,13 @@ app.get('/api/auth/security-questions/:admissionNo', async (req, res) => {
 // Login with security questions
 app.post('/api/auth/login-security', async (req, res) => {
   if (checkDb(res)) return;
-  const { admissionNo, answer1, answer2, loginAs } = req.body;
+  const { username, answer1, answer2, loginAs } = req.body;
 
   try {
     const { data: user, error } = await supabase
       .from('users')
       .select('*')
-      .eq('admission_no', admissionNo)
+      .eq('username', username)
       .single();
 
     if (error || !user) {
@@ -237,16 +236,16 @@ app.post('/api/auth/login-security', async (req, res) => {
     }
 
     // Role validation
-    if (loginAs === 'student' && user.role !== 'Student') {
-      return res.status(403).json({ error: 'Access denied. This is not a student account.' });
-    } else if (loginAs === 'lecturer' && user.role !== 'Lecturer' && user.role !== 'Faculty') {
-      return res.status(403).json({ error: 'Access denied. This is not a lecturer account.' });
+    if (loginAs === 'reader' && user.role !== 'Reader') {
+      return res.status(403).json({ error: 'Access denied. This is not a reader account.' });
+    } else if (loginAs === 'premium' && user.role !== 'Premium') {
+      return res.status(403).json({ error: 'Access denied. This is not a premium account.' });
     } else if (loginAs === 'admin' && user.role !== 'Admin') {
-      return res.status(403).json({ error: 'Access denied. This is not a library staff account.' });
+      return res.status(403).json({ error: 'Access denied. This is not an admin account.' });
     }
 
     res.json({ 
-      user: { id: user.id, name: user.name, admissionNo: user.admission_no, role: user.role, avatarUrl: user.avatar_url, course: user.course } 
+      user: { id: user.id, name: user.name, username: user.username, role: user.role, avatarUrl: user.avatar_url } 
     });
   } catch (err) {
     console.error("Security Login Error:", err);
@@ -257,13 +256,13 @@ app.post('/api/auth/login-security', async (req, res) => {
 // Verify security answers (for password reset flow)
 app.post('/api/auth/verify-security-answers', async (req, res) => {
   if (checkDb(res)) return;
-  const { admissionNo, answer1, answer2 } = req.body;
+  const { username, answer1, answer2 } = req.body;
 
   try {
     const { data: user, error } = await supabase
       .from('users')
       .select('security_answer_1, security_answer_2')
-      .eq('admission_no', admissionNo)
+      .eq('username', username)
       .single();
 
     if (error || !user) {
@@ -291,13 +290,13 @@ app.post('/api/auth/verify-security-answers', async (req, res) => {
 // Reset password using security questions
 app.post('/api/auth/reset-password-security', async (req, res) => {
   if (checkDb(res)) return;
-  const { admissionNo, answer1, answer2, newPassword } = req.body;
+  const { username, answer1, answer2, newPassword } = req.body;
 
   try {
     const { data: user, error } = await supabase
       .from('users')
       .select('id, security_answer_1, security_answer_2')
-      .eq('admission_no', admissionNo)
+      .eq('username', username)
       .single();
 
     if (error || !user) {
@@ -334,19 +333,19 @@ app.post('/api/auth/reset-password-security', async (req, res) => {
 // Forgot Password - Generate reset token and send email
 app.post('/api/auth/forgot-password', async (req, res) => {
   if (checkDb(res)) return;
-  const { email, admissionNo } = req.body;
+  const { email, username } = req.body;
 
   try {
-    // Find user by admission number and email
+    // Find user by username and email
     const { data: user, error } = await supabase
       .from('users')
       .select('id, name, email')
-      .eq('admission_no', admissionNo)
+      .eq('username', username)
       .eq('email', email)
       .single();
 
     if (error || !user) {
-      return res.status(400).json({ error: 'No account found with this admission number and email combination.' });
+      return res.status(400).json({ error: 'No account found with this username and email combination.' });
     }
 
     // Generate a simple reset token (in production, use crypto.randomBytes)
@@ -425,13 +424,13 @@ app.post('/api/auth/reset-password', async (req, res) => {
 
 app.post('/api/auth/login', async (req, res) => {
   if (checkDb(res)) return;
-  const { admissionNo, password, loginAs } = req.body;
+  const { username, password, loginAs } = req.body;
 
   try {
     const { data: user, error } = await supabase
       .from('users')
       .select('*')
-      .eq('admission_no', admissionNo)
+      .eq('username', username)
       .single();
 
     if (error || !user) {
@@ -444,16 +443,16 @@ app.post('/api/auth/login', async (req, res) => {
     }
 
     // Role validation
-    if (loginAs === 'student' && user.role !== 'Student') {
-      return res.status(403).json({ error: 'Access denied. This is not a student account.' });
-    } else if (loginAs === 'lecturer' && user.role !== 'Lecturer' && user.role !== 'Faculty') {
-      return res.status(403).json({ error: 'Access denied. This is not a lecturer account.' });
+    if (loginAs === 'reader' && user.role !== 'Reader') {
+      return res.status(403).json({ error: 'Access denied. This is not a reader account.' });
+    } else if (loginAs === 'premium' && user.role !== 'Premium') {
+      return res.status(403).json({ error: 'Access denied. This is not a premium account.' });
     } else if (loginAs === 'admin' && user.role !== 'Admin') {
-      return res.status(403).json({ error: 'Access denied. This is not a library staff account.' });
+      return res.status(403).json({ error: 'Access denied. This is not an admin account.' });
     }
 
     res.json({ 
-      user: { id: user.id, name: user.name, admissionNo: user.admission_no, role: user.role, avatarUrl: user.avatar_url, course: user.course } 
+      user: { id: user.id, name: user.name, username: user.username, role: user.role, avatarUrl: user.avatar_url } 
     });
   } catch (err) {
     console.error("Login Error:", err);
@@ -1609,7 +1608,7 @@ app.delete('/api/admin/books/:bookId', async (req, res) => {
 app.get('/api/admin/users', async (req, res) => {
   if (checkDb(res)) return;
   try {
-    const { data, error } = await supabase.from('users').select('id, name, email, admission_no, role, created_at').order('created_at', { ascending: false });
+    const { data, error } = await supabase.from('users').select('id, name, email, username, role, created_at').order('created_at', { ascending: false });
     if (error) throw error;
     res.json(data);
   } catch (err) {
@@ -1621,7 +1620,7 @@ app.put('/api/admin/users/:userId/role', async (req, res) => {
   if (checkDb(res)) return;
   const { userId } = req.params;
   const { role } = req.body;
-  if (!['Student', 'Lecturer', 'Faculty', 'Admin'].includes(role)) return res.status(400).json({ error: 'Invalid role' });
+  if (!['Reader', 'Premium', 'Admin'].includes(role)) return res.status(400).json({ error: 'Invalid role' });
   try {
     const { data, error } = await supabase.from('users').update({ role }).eq('id', userId).select().single();
     if (error) throw error;
@@ -1742,7 +1741,7 @@ app.get('/api/admin/active-loans', async (req, res) => {
       daysRemaining: l.days_remaining,
       userId: l.user_id,
       userName: l.user_name,
-      userAdmissionNo: l.admission_no,
+      userUsername: l.username,
       book: {
         id: l.book_id,
         title: l.book_title,
@@ -1780,7 +1779,7 @@ app.get('/api/admin/borrow-requests', async (req, res) => {
         users!borrow_requests_user_id_fkey (
           id,
           name,
-          admission_no
+          username
         ),
         books (
           id,
@@ -1813,7 +1812,7 @@ app.get('/api/admin/borrow-requests', async (req, res) => {
       processedAt: r.processed_at,
       processedBy: r.processed_by,
       userName: r.users?.name,
-      userAdmissionNo: r.users?.admission_no,
+      userUsername: r.users?.username,
       bookTitle: r.books?.title,
       bookAuthor: r.books?.author,
       bookCoverUrl: r.books?.cover_url,
@@ -1911,7 +1910,7 @@ app.post('/api/admin/borrow-requests/:id/reject', async (req, res) => {
 app.put('/api/users/:userId/profile', async (req, res) => {
   if (checkDb(res)) return;
   const { userId } = req.params;
-  const { name, email, course } = req.body;
+  const { name, email } = req.body;
 
   if (!name || name.trim().length === 0) {
     return res.status(400).json({ error: 'Name is required' });
@@ -1940,11 +1939,10 @@ app.put('/api/users/:userId/profile', async (req, res) => {
       .update({ 
         name: name.trim(), 
         email: email || null, 
-        course: course || null,
         avatar_url: avatarUrl
       })
       .eq('id', userId)
-      .select('id, name, email, admission_no, role, avatar_url, course')
+      .select('id, name, email, username, role, avatar_url')
       .single();
 
     if (error) throw error;
@@ -1955,10 +1953,9 @@ app.put('/api/users/:userId/profile', async (req, res) => {
         id: data.id,
         name: data.name,
         email: data.email,
-        admissionNo: data.admission_no,
+        username: data.username,
         role: data.role,
-        avatarUrl: data.avatar_url,
-        course: data.course
+        avatarUrl: data.avatar_url
       }
     });
   } catch (err) {

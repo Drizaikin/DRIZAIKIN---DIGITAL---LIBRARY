@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { User, Lock, Mail, CreditCard, ArrowRight, ArrowLeft, GraduationCap, Eye, EyeOff, Shield, HelpCircle } from 'lucide-react';
+import React, { useState } from 'react';
+import { User, Lock, Mail, ArrowRight, ArrowLeft, Eye, EyeOff, Shield, HelpCircle, AtSign } from 'lucide-react';
 
 // Use environment variable or relative path for Vercel deployment
 const API_URL = import.meta.env.VITE_API_URL || '/api';
@@ -19,10 +19,9 @@ const SECURITY_QUESTIONS = [
 interface RegisterProps {
   onRegister: (userData: { 
     name: string; 
-    admissionNo: string; 
+    username: string; 
     password?: string; 
-    email?: string; 
-    course?: string;
+    email?: string;
     securityQuestion1?: string;
     securityAnswer1?: string;
     securityQuestion2?: string;
@@ -31,26 +30,18 @@ interface RegisterProps {
   onSwitchToLogin: () => void;
 }
 
-interface Course {
-  id: string;
-  name: string;
-  department: string;
-}
-
 const Register: React.FC<RegisterProps> = ({ onRegister, onSwitchToLogin }) => {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
-    admissionNo: '',
+    username: '',
     password: '',
     confirmPassword: '',
-    course: '',
     securityQuestion1: '',
     securityAnswer1: '',
     securityQuestion2: '',
     securityAnswer2: ''
   });
-  const [courses, setCourses] = useState<Course[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [validationError, setValidationError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -59,22 +50,6 @@ const Register: React.FC<RegisterProps> = ({ onRegister, onSwitchToLogin }) => {
   // Get available questions for second dropdown (exclude first selected)
   const availableQuestionsForQ2 = SECURITY_QUESTIONS.filter(q => q !== formData.securityQuestion1);
 
-  useEffect(() => {
-    fetchCourses();
-  }, []);
-
-  const fetchCourses = async () => {
-    try {
-      const response = await fetch(`${API_URL}/courses`);
-      if (response.ok) {
-        const data = await response.json();
-        setCourses(data);
-      }
-    } catch (err) {
-      console.error('Failed to fetch courses:', err);
-    }
-  };
-
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
     setValidationError('');
@@ -82,7 +57,14 @@ const Register: React.FC<RegisterProps> = ({ onRegister, onSwitchToLogin }) => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.name || !formData.email || !formData.admissionNo || !formData.password || !formData.confirmPassword) return;
+    if (!formData.name || !formData.email || !formData.username || !formData.password || !formData.confirmPassword) return;
+
+    // Validate username format (alphanumeric, underscores, 3-20 chars)
+    const usernameRegex = /^[a-zA-Z0-9_]{3,20}$/;
+    if (!usernameRegex.test(formData.username)) {
+      setValidationError('Username must be 3-20 characters and contain only letters, numbers, and underscores.');
+      return;
+    }
 
     // Check if passwords match
     if (formData.password !== formData.confirmPassword) {
@@ -106,9 +88,8 @@ const Register: React.FC<RegisterProps> = ({ onRegister, onSwitchToLogin }) => {
       await onRegister({
         name: formData.name,
         email: formData.email,
-        admissionNo: formData.admissionNo,
+        username: formData.username,
         password: formData.password,
-        course: formData.course,
         securityQuestion1: formData.securityQuestion1,
         securityAnswer1: formData.securityAnswer1,
         securityQuestion2: formData.securityQuestion2,
@@ -120,14 +101,6 @@ const Register: React.FC<RegisterProps> = ({ onRegister, onSwitchToLogin }) => {
       setIsLoading(false);
     }
   };
-
-  // Group courses by department
-  const coursesByDepartment = courses.reduce((acc: { [key: string]: Course[] }, course: Course) => {
-    const dept = course.department || 'Other';
-    if (!acc[dept]) acc[dept] = [];
-    acc[dept].push(course);
-    return acc;
-  }, {} as { [key: string]: Course[] });
 
   // Drizaikn Logo SVG Component
   const DrizaiknLogo: React.FC<{ className?: string }> = ({ className = "h-16 w-16" }) => (
@@ -183,7 +156,7 @@ const Register: React.FC<RegisterProps> = ({ onRegister, onSwitchToLogin }) => {
         <div className="absolute bottom-32 left-1/4 w-20 h-20 border border-white/10 rounded-3xl -rotate-12 animate-pulse" style={{ animationDelay: '2s' }} />
       </div>
       
-      <div className="glass-panel w-full max-w-md p-4 sm:p-8 rounded-3xl shadow-2xl border border-white/20 backdrop-blur-xl bg-white/95 relative z-10">
+      <div className="glass-panel w-full max-w-md p-4 sm:p-8 rounded-3xl shadow-2xl border border-white/20 backdrop-blur-xl bg-white/95 relative z-10 max-h-[90vh] overflow-y-auto">
         <button 
           onClick={onSwitchToLogin}
           className="flex items-center gap-1 text-slate-500 hover:text-indigo-600 text-sm mb-4 sm:mb-6 transition-colors"
@@ -195,13 +168,8 @@ const Register: React.FC<RegisterProps> = ({ onRegister, onSwitchToLogin }) => {
           <div className="inline-flex justify-center items-center w-20 h-20 sm:w-24 sm:h-24 bg-gradient-to-br from-indigo-50 via-purple-50 to-violet-50 rounded-2xl mb-4 shadow-lg shadow-indigo-100/50">
             <DrizaiknLogo className="h-12 w-12 sm:h-14 sm:w-14" />
           </div>
-          <h1 className="text-xl sm:text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 via-purple-600 to-violet-600">Student Registration</h1>
-          <p className="text-slate-500 text-xs sm:text-sm mt-1">Create your account for Drizaikn Digital Library.</p>
-          <div className="mt-3 p-2 sm:p-3 bg-gradient-to-r from-indigo-50 to-purple-50 border border-indigo-200 rounded-xl">
-            <p className="text-[10px] sm:text-xs text-indigo-700">
-              <strong>Note:</strong> This registration is for students only. Library staff should contact the system administrator for access.
-            </p>
-          </div>
+          <h1 className="text-xl sm:text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 via-purple-600 to-violet-600">Create Account</h1>
+          <p className="text-slate-500 text-xs sm:text-sm mt-1">Join Drizaikn Digital Library today.</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-3 sm:space-y-4">
@@ -231,7 +199,7 @@ const Register: React.FC<RegisterProps> = ({ onRegister, onSwitchToLogin }) => {
           </div>
 
           <div className="space-y-1">
-            <label className="text-xs font-semibold text-slate-600 uppercase">Personal Email</label>
+            <label className="text-xs font-semibold text-slate-600 uppercase">Email</label>
             <div className="relative group">
               <div className="absolute inset-y-0 left-0 pl-2 sm:pl-3 flex items-center pointer-events-none">
                 <Mail size={16} className="text-slate-400 group-focus-within:text-indigo-600 transition-colors" />
@@ -241,7 +209,7 @@ const Register: React.FC<RegisterProps> = ({ onRegister, onSwitchToLogin }) => {
                 type="email"
                 value={formData.email}
                 onChange={handleChange}
-                placeholder="student@example.com"
+                placeholder="you@example.com"
                 className="block w-full pl-8 sm:pl-10 pr-3 py-2 sm:py-2.5 text-sm bg-white/50 border border-slate-200 rounded-lg text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
                 required
               />
@@ -249,51 +217,22 @@ const Register: React.FC<RegisterProps> = ({ onRegister, onSwitchToLogin }) => {
           </div>
 
           <div className="space-y-1">
-            <label className="text-xs font-semibold text-slate-600 uppercase">Admission Number</label>
+            <label className="text-xs font-semibold text-slate-600 uppercase">Username</label>
             <div className="relative group">
               <div className="absolute inset-y-0 left-0 pl-2 sm:pl-3 flex items-center pointer-events-none">
-                <CreditCard size={16} className="text-slate-400 group-focus-within:text-indigo-600 transition-colors" />
+                <AtSign size={16} className="text-slate-400 group-focus-within:text-indigo-600 transition-colors" />
               </div>
               <input
-                name="admissionNo"
+                name="username"
                 type="text"
-                value={formData.admissionNo}
+                value={formData.username}
                 onChange={handleChange}
-                placeholder="Enter admission number"
-                className="block w-full pl-8 sm:pl-10 pr-3 py-2 sm:py-2.5 text-sm bg-white/50 border border-slate-200 rounded-lg text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all uppercase"
+                placeholder="johndoe123"
+                className="block w-full pl-8 sm:pl-10 pr-3 py-2 sm:py-2.5 text-sm bg-white/50 border border-slate-200 rounded-lg text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
                 required
               />
             </div>
-          </div>
-
-          <div className="space-y-1">
-            <label className="text-xs font-semibold text-slate-600 uppercase">Course / Major</label>
-            <div className="relative group">
-              <div className="absolute inset-y-0 left-0 pl-2 sm:pl-3 flex items-center pointer-events-none z-10">
-                <GraduationCap size={16} className="text-slate-400 group-focus-within:text-indigo-600 transition-colors" />
-              </div>
-              <select
-                name="course"
-                value={formData.course}
-                onChange={handleChange}
-                className="block w-full pl-8 sm:pl-10 pr-10 py-2 sm:py-2.5 text-sm bg-white border border-slate-200 rounded-lg text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
-              >
-                <option value="">Select course (optional)</option>
-                {Object.entries(coursesByDepartment).map(([dept, deptCourses]: [string, Course[]]) => (
-                  <optgroup key={dept} label={dept}>
-                    {deptCourses.map((course: Course) => (
-                      <option key={course.id} value={course.name}>{course.name}</option>
-                    ))}
-                  </optgroup>
-                ))}
-              </select>
-              <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-                <svg className="h-4 w-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                </svg>
-              </div>
-            </div>
-            <p className="text-[10px] sm:text-xs text-slate-400 mt-1">Helps us recommend relevant books</p>
+            <p className="text-[10px] sm:text-xs text-slate-400 mt-1">3-20 characters, letters, numbers, underscores only</p>
           </div>
 
           <div className="space-y-1">
@@ -353,34 +292,24 @@ const Register: React.FC<RegisterProps> = ({ onRegister, onSwitchToLogin }) => {
               <span className="text-xs font-semibold text-slate-600 uppercase">Security Questions</span>
             </div>
             <p className="text-[10px] sm:text-xs text-slate-500 mb-3">
-              These questions will be used to recover your account or login without password.
+              Used for account recovery if you forget your password.
             </p>
 
             {/* Security Question 1 */}
             <div className="space-y-1 mb-3">
               <label className="text-xs font-semibold text-slate-600">Question 1</label>
-              <div className="relative group">
-                <div className="absolute inset-y-0 left-0 pl-2 sm:pl-3 flex items-center pointer-events-none z-10">
-                  <HelpCircle size={16} className="text-slate-400" />
-                </div>
-                <select
-                  name="securityQuestion1"
-                  value={formData.securityQuestion1}
-                  onChange={handleChange}
-                  className="block w-full pl-8 sm:pl-10 pr-10 py-2 sm:py-2.5 text-sm bg-white border border-slate-200 rounded-lg text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
-                  required
-                >
-                  <option value="">Select a security question</option>
-                  {SECURITY_QUESTIONS.map((q) => (
-                    <option key={q} value={q}>{q}</option>
-                  ))}
-                </select>
-                <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-                  <svg className="h-4 w-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                  </svg>
-                </div>
-              </div>
+              <select
+                name="securityQuestion1"
+                value={formData.securityQuestion1}
+                onChange={handleChange}
+                className="block w-full px-3 py-2 sm:py-2.5 text-sm bg-white border border-slate-200 rounded-lg text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
+                required
+              >
+                <option value="">Select a security question</option>
+                {SECURITY_QUESTIONS.map((q) => (
+                  <option key={q} value={q}>{q}</option>
+                ))}
+              </select>
               <input
                 name="securityAnswer1"
                 type="text"
@@ -395,28 +324,18 @@ const Register: React.FC<RegisterProps> = ({ onRegister, onSwitchToLogin }) => {
             {/* Security Question 2 */}
             <div className="space-y-1">
               <label className="text-xs font-semibold text-slate-600">Question 2</label>
-              <div className="relative group">
-                <div className="absolute inset-y-0 left-0 pl-2 sm:pl-3 flex items-center pointer-events-none z-10">
-                  <HelpCircle size={16} className="text-slate-400" />
-                </div>
-                <select
-                  name="securityQuestion2"
-                  value={formData.securityQuestion2}
-                  onChange={handleChange}
-                  className="block w-full pl-8 sm:pl-10 pr-10 py-2 sm:py-2.5 text-sm bg-white border border-slate-200 rounded-lg text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
-                  required
-                >
-                  <option value="">Select a security question</option>
-                  {availableQuestionsForQ2.map((q) => (
-                    <option key={q} value={q}>{q}</option>
-                  ))}
-                </select>
-                <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-                  <svg className="h-4 w-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                  </svg>
-                </div>
-              </div>
+              <select
+                name="securityQuestion2"
+                value={formData.securityQuestion2}
+                onChange={handleChange}
+                className="block w-full px-3 py-2 sm:py-2.5 text-sm bg-white border border-slate-200 rounded-lg text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
+                required
+              >
+                <option value="">Select a security question</option>
+                {availableQuestionsForQ2.map((q) => (
+                  <option key={q} value={q}>{q}</option>
+                ))}
+              </select>
               <input
                 name="securityAnswer2"
                 type="text"

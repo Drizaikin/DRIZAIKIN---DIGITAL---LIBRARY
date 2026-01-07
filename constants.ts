@@ -4,7 +4,7 @@ export const CURRENT_USER: User = {
   id: 'u123',
   name: 'Alex Johnson',
   avatarUrl: 'https://picsum.photos/id/64/200/200',
-  role: 'Student'
+  role: 'Reader'
 };
 
 export const MOCK_BOOKS: Book[] = [

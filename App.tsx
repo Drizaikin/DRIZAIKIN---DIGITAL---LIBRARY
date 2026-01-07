@@ -130,7 +130,8 @@ const App: React.FC = () => {
         name: existingUser.name,
         avatarUrl: existingUser.avatarUrl,
         role: existingUser.role,
-        course: existingUser.course
+        username: existingUser.username,
+        email: existingUser.email
       };
       setUser(appUser);
       setIsAuthenticated(true);
@@ -244,18 +245,17 @@ const App: React.FC = () => {
       return sortOrder === 'asc' ? comparison : -comparison;
     });
 
-  const handleLogin = async (admissionNo: string, password?: string, loginAs?: 'student' | 'lecturer' | 'admin') => {
+  const handleLogin = async (username: string, password?: string, loginAs?: 'reader' | 'premium' | 'admin') => {
     try {
       setError(null);
-      const authUser = await authService.login({ admissionNo, password: password || '', loginAs });
+      const authUser = await authService.login({ username, password: password || '', loginAs });
       const appUser: User = {
         id: authUser.id,
         name: authUser.name,
         avatarUrl: authUser.avatarUrl,
         role: authUser.role,
-        course: authUser.course,
         email: authUser.email,
-        admissionNo: authUser.admissionNo
+        username: authUser.username
       };
       setUser(appUser);
       setIsAuthenticated(true);
@@ -266,20 +266,20 @@ const App: React.FC = () => {
   };
 
   const handleRegister = async (userData: { 
-    name: string; admissionNo: string; password?: string; email?: string; course?: string;
+    name: string; username: string; password?: string; email?: string;
     securityQuestion1?: string; securityAnswer1?: string; securityQuestion2?: string; securityAnswer2?: string;
   }) => {
     try {
       setError(null);
       const authUser = await authService.register({
-        name: userData.name, email: userData.email || '', admissionNo: userData.admissionNo,
-        password: userData.password || '', course: userData.course,
+        name: userData.name, email: userData.email || '', username: userData.username,
+        password: userData.password || '',
         securityQuestion1: userData.securityQuestion1, securityAnswer1: userData.securityAnswer1,
         securityQuestion2: userData.securityQuestion2, securityAnswer2: userData.securityAnswer2
       });
       const appUser: User = {
         id: authUser.id, name: authUser.name, avatarUrl: authUser.avatarUrl,
-        role: authUser.role, course: authUser.course, email: authUser.email, admissionNo: authUser.admissionNo
+        role: authUser.role, email: authUser.email, username: authUser.username
       };
       setUser(appUser);
       setIsAuthenticated(true);
@@ -404,7 +404,7 @@ const App: React.FC = () => {
                   <p className="text-xs md:text-sm truncate" style={{ color: theme.colors.mutedText }}>{user!.email || 'No email provided'}</p>
                   <div className="flex items-center gap-2 mt-1.5 flex-wrap">
                     <span className="text-[10px] md:text-xs font-mono px-2 py-0.5 rounded-lg truncate max-w-[150px] md:max-w-none" style={{ backgroundColor: theme.colors.primaryBg, color: theme.colors.mutedText }}>
-                      {user!.role === 'Student' ? user!.admissionNo : `Staff ID: ${user!.admissionNo}`}
+                      @{user!.username}
                     </span>
                     <span className="text-xs px-2 py-0.5 rounded-full font-medium" style={{ backgroundColor: `${theme.colors.accent}20`, color: theme.colors.accent }}>{user!.role}</span>
                   </div>

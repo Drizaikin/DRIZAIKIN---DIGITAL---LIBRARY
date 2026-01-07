@@ -32,8 +32,8 @@ interface SystemUser {
   id: string;
   name: string;
   email: string;
-  admission_no: string;
-  role: 'Student' | 'Lecturer' | 'Faculty' | 'Admin';
+  username: string;
+  role: 'Reader' | 'Premium' | 'Admin';
   created_at: string;
 }
 
@@ -46,7 +46,7 @@ interface ActiveLoan {
   daysRemaining: number;
   userId: string;
   userName: string;
-  userAdmissionNo: string;
+  userUsername: string;
   book: {
     id: string;
     title: string;
@@ -302,7 +302,7 @@ const AdminPanel: React.FC = () => {
     }
   };
 
-  const handleUpdateUserRole = async (userId: string, newRole: 'Student' | 'Lecturer' | 'Faculty' | 'Admin') => {
+  const handleUpdateUserRole = async (userId: string, newRole: 'Reader' | 'Premium' | 'Admin') => {
     try {
       const response = await fetch(`${API_URL}/admin/users/${userId}/role`, {
         method: 'PUT',
@@ -470,7 +470,7 @@ const AdminPanel: React.FC = () => {
     const searchLower = requestSearchQuery.toLowerCase();
     return (
       (request.userName?.toLowerCase().includes(searchLower) || false) ||
-      (request.userAdmissionNo?.toLowerCase().includes(searchLower) || false) ||
+      (request.userUsername?.toLowerCase().includes(searchLower) || false) ||
       (request.bookTitle?.toLowerCase().includes(searchLower) || false) ||
       (request.bookAuthor?.toLowerCase().includes(searchLower) || false)
     );
@@ -1125,9 +1125,9 @@ const AdminPanel: React.FC = () => {
                 </div>
                 <div>
                   <p className="text-xl md:text-2xl font-bold text-green-400">
-                    {users.filter(u => u.role === 'Student').length}
+                    {users.filter(u => u.role === 'Reader').length}
                   </p>
-                  <p className="text-[10px] md:text-xs" style={{ color: theme.colors.mutedText }}>Students</p>
+                  <p className="text-[10px] md:text-xs" style={{ color: theme.colors.mutedText }}>Readers</p>
                 </div>
               </div>
             </div>
@@ -1199,7 +1199,7 @@ const AdminPanel: React.FC = () => {
                     .filter(user => 
                       user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
                       user.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                      user.admission_no.toLowerCase().includes(searchQuery.toLowerCase())
+                      user.username.toLowerCase().includes(searchQuery.toLowerCase())
                     )
                     .map((user, index, arr) => (
                     <tr 
@@ -1217,7 +1217,7 @@ const AdminPanel: React.FC = () => {
                           className="text-sm font-mono px-2 py-1 rounded"
                           style={{ backgroundColor: theme.colors.primaryBg, color: theme.colors.primaryText }}
                         >
-                          {user.admission_no}
+                          {user.username}
                         </span>
                       </td>
                       <td className="px-4 py-3 text-center">
@@ -1241,14 +1241,12 @@ const AdminPanel: React.FC = () => {
                           <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium ${
                             user.role === 'Admin' 
                               ? 'bg-orange-900/50 text-orange-400' 
-                              : user.role === 'Faculty'
+                              : user.role === 'Premium'
                               ? 'bg-purple-900/50 text-purple-400'
-                              : user.role === 'Lecturer'
-                              ? 'bg-green-900/50 text-green-400'
                               : 'bg-blue-900/50 text-blue-400'
                           }`}>
                             {user.role === 'Admin' && <Shield size={12} />}
-                            {user.role === 'Student' && <GraduationCap size={12} />}
+                            {user.role === 'Reader' && <GraduationCap size={12} />}
                             {user.role}
                           </span>
                         )}
@@ -1297,7 +1295,7 @@ const AdminPanel: React.FC = () => {
             {users.filter(user => 
               user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
               user.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-              user.admission_no.toLowerCase().includes(searchQuery.toLowerCase())
+              user.username.toLowerCase().includes(searchQuery.toLowerCase())
             ).length === 0 && (
               <div className="text-center py-12" style={{ color: theme.colors.mutedText }}>
                 No users found matching your search.
@@ -1310,7 +1308,7 @@ const AdminPanel: React.FC = () => {
               .filter(user => 
                 user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
                 user.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                user.admission_no.toLowerCase().includes(searchQuery.toLowerCase())
+                user.username.toLowerCase().includes(searchQuery.toLowerCase())
               )
               .map((user) => (
               <div 
@@ -1329,7 +1327,7 @@ const AdminPanel: React.FC = () => {
                       className="text-xs font-mono px-2 py-0.5 rounded inline-block mt-1"
                       style={{ backgroundColor: theme.colors.primaryBg, color: theme.colors.primaryText }}
                     >
-                      {user.admission_no}
+                      {user.username}
                     </p>
                   </div>
                   {editingUser?.id === user.id ? (
@@ -1382,14 +1380,12 @@ const AdminPanel: React.FC = () => {
                       <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${
                         user.role === 'Admin' 
                           ? 'bg-orange-900/50 text-orange-400' 
-                          : user.role === 'Faculty'
+                          : user.role === 'Premium'
                           ? 'bg-purple-900/50 text-purple-400'
-                          : user.role === 'Lecturer'
-                          ? 'bg-green-900/50 text-green-400'
                           : 'bg-blue-900/50 text-blue-400'
                       }`}>
                         {user.role === 'Admin' && <Shield size={10} />}
-                        {user.role === 'Student' && <GraduationCap size={10} />}
+                        {user.role === 'Reader' && <GraduationCap size={10} />}
                         {user.role}
                       </span>
                     )}
@@ -1405,7 +1401,7 @@ const AdminPanel: React.FC = () => {
             {users.filter(user => 
               user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
               user.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-              user.admission_no.toLowerCase().includes(searchQuery.toLowerCase())
+              user.username.toLowerCase().includes(searchQuery.toLowerCase())
             ).length === 0 && (
               <div 
                 className="text-center py-12 rounded-xl"
@@ -1423,7 +1419,7 @@ const AdminPanel: React.FC = () => {
             Showing {users.filter(user => 
               user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
               user.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-              user.admission_no.toLowerCase().includes(searchQuery.toLowerCase())
+              user.username.toLowerCase().includes(searchQuery.toLowerCase())
             ).length} of {users.length} users
           </div>
         </div>
@@ -1501,7 +1497,7 @@ const AdminPanel: React.FC = () => {
                             className="text-xs font-mono px-2 py-0.5 rounded inline-block"
                             style={{ backgroundColor: theme.colors.primaryBg, color: theme.colors.mutedText }}
                           >
-                            {request.userAdmissionNo}
+                            {request.userUsername}
                           </p>
                         </div>
                       </td>
@@ -1616,7 +1612,7 @@ const AdminPanel: React.FC = () => {
                         className="text-[10px] font-mono px-1.5 py-0.5 rounded inline-block"
                         style={{ backgroundColor: theme.colors.primaryBg, color: theme.colors.mutedText }}
                       >
-                        {request.userAdmissionNo}
+                        {request.userUsername}
                       </p>
                     </div>
                   </div>
@@ -1846,7 +1842,7 @@ const AdminPanel: React.FC = () => {
                       const searchLower = loansSearchQuery.toLowerCase();
                       return (
                         loan.userName?.toLowerCase().includes(searchLower) ||
-                        loan.userAdmissionNo?.toLowerCase().includes(searchLower) ||
+                        loan.userUsername?.toLowerCase().includes(searchLower) ||
                         loan.book?.title?.toLowerCase().includes(searchLower) ||
                         loan.book?.author?.toLowerCase().includes(searchLower)
                       );
@@ -1880,7 +1876,7 @@ const AdminPanel: React.FC = () => {
                             className="text-xs font-mono px-2 py-0.5 rounded inline-block"
                             style={{ backgroundColor: theme.colors.primaryBg, color: theme.colors.mutedText }}
                           >
-                            {loan.userAdmissionNo}
+                            {loan.userUsername}
                           </p>
                         </div>
                       </td>
@@ -1926,7 +1922,7 @@ const AdminPanel: React.FC = () => {
               const searchLower = loansSearchQuery.toLowerCase();
               return (
                 loan.userName?.toLowerCase().includes(searchLower) ||
-                loan.userAdmissionNo?.toLowerCase().includes(searchLower) ||
+                loan.userUsername?.toLowerCase().includes(searchLower) ||
                 loan.book?.title?.toLowerCase().includes(searchLower) ||
                 loan.book?.author?.toLowerCase().includes(searchLower)
               );
@@ -1944,7 +1940,7 @@ const AdminPanel: React.FC = () => {
                 const searchLower = loansSearchQuery.toLowerCase();
                 return (
                   loan.userName?.toLowerCase().includes(searchLower) ||
-                  loan.userAdmissionNo?.toLowerCase().includes(searchLower) ||
+                  loan.userUsername?.toLowerCase().includes(searchLower) ||
                   loan.book?.title?.toLowerCase().includes(searchLower) ||
                   loan.book?.author?.toLowerCase().includes(searchLower)
                 );
@@ -1973,7 +1969,7 @@ const AdminPanel: React.FC = () => {
                         className="text-[10px] font-mono px-1.5 py-0.5 rounded inline-block"
                         style={{ backgroundColor: theme.colors.primaryBg, color: theme.colors.mutedText }}
                       >
-                        {loan.userAdmissionNo}
+                        {loan.userUsername}
                       </p>
                     </div>
                   </div>
@@ -2010,7 +2006,7 @@ const AdminPanel: React.FC = () => {
               const searchLower = loansSearchQuery.toLowerCase();
               return (
                 loan.userName?.toLowerCase().includes(searchLower) ||
-                loan.userAdmissionNo?.toLowerCase().includes(searchLower) ||
+                loan.userUsername?.toLowerCase().includes(searchLower) ||
                 loan.book?.title?.toLowerCase().includes(searchLower) ||
                 loan.book?.author?.toLowerCase().includes(searchLower)
               );
@@ -2032,7 +2028,7 @@ const AdminPanel: React.FC = () => {
               const searchLower = loansSearchQuery.toLowerCase();
               return (
                 loan.userName?.toLowerCase().includes(searchLower) ||
-                loan.userAdmissionNo?.toLowerCase().includes(searchLower) ||
+                loan.userUsername?.toLowerCase().includes(searchLower) ||
                 loan.book?.title?.toLowerCase().includes(searchLower) ||
                 loan.book?.author?.toLowerCase().includes(searchLower)
               );

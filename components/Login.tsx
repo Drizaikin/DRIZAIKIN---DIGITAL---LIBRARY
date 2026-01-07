@@ -5,23 +5,23 @@ import { useAppTheme } from '../hooks/useAppTheme';
 const API_URL = import.meta.env.VITE_API_URL || '/api';
 
 interface LoginProps {
-  onLogin: (admissionNo: string, password?: string, loginAs?: 'student' | 'lecturer' | 'admin') => Promise<void>;
+  onLogin: (username: string, password?: string, loginAs?: 'reader' | 'premium' | 'admin') => Promise<void>;
   onSwitchToRegister: () => void;
 }
 
-type LoginRole = 'student' | 'lecturer' | 'admin';
+type LoginRole = 'reader' | 'premium' | 'admin';
 type RecoveryStep = 'enter-id' | 'answer-questions' | 'reset-password';
 
 const Login: React.FC<LoginProps> = ({ onLogin, onSwitchToRegister }) => {
-  const [admissionNo, setAdmissionNo] = useState('');
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [selectedRole, setSelectedRole] = useState<LoginRole>('student');
+  const [selectedRole, setSelectedRole] = useState<LoginRole>('reader');
   const [validationError, setValidationError] = useState('');
   
   // Security question login states
   const [showSecurityLogin, setShowSecurityLogin] = useState(false);
-  const [securityAdmissionNo, setSecurityAdmissionNo] = useState('');
+  const [securityUsername, setSecurityUsername] = useState('');
   const [securityQuestions, setSecurityQuestions] = useState<{ q1: string; q2: string } | null>(null);
   const [securityAnswer1, setSecurityAnswer1] = useState('');
   const [securityAnswer2, setSecurityAnswer2] = useState('');
@@ -32,7 +32,7 @@ const Login: React.FC<LoginProps> = ({ onLogin, onSwitchToRegister }) => {
   // Forgot password states
   const [showForgotPassword, setShowForgotPassword] = useState(false);
   const [recoveryStep, setRecoveryStep] = useState<RecoveryStep>('enter-id');
-  const [resetAdmissionNo, setResetAdmissionNo] = useState('');
+  const [resetUsername, setResetUsername] = useState('');
   const [resetQuestions, setResetQuestions] = useState<{ q1: string; q2: string } | null>(null);
   const [resetAnswer1, setResetAnswer1] = useState('');
   const [resetAnswer2, setResetAnswer2] = useState('');
@@ -46,26 +46,26 @@ const Login: React.FC<LoginProps> = ({ onLogin, onSwitchToRegister }) => {
   const theme = useAppTheme();
   const colors = theme.colors;
 
-  const handleAdmissionNoChange = (value: string) => {
-    setAdmissionNo(value);
+  const handleUsernameChange = (value: string) => {
+    setUsername(value);
     setValidationError('');
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!admissionNo || !password) return;
+    if (!username || !password) return;
     
     setIsLoading(true);
     setValidationError('');
     try {
-      await onLogin(admissionNo, password, selectedRole);
+      await onLogin(username, password, selectedRole);
     } catch (error: any) {
-      if (error.message && error.message.includes('library staff account')) {
-        setValidationError('⚠️ Access Denied: This is a library staff account. Please select "Library Staff" to login.');
-      } else if (error.message && error.message.includes('lecturer account')) {
-        setValidationError('⚠️ Access Denied: This is a lecturer account. Please select "Lecturer" to login.');
-      } else if (error.message && error.message.includes('student account')) {
-        setValidationError('⚠️ Access Denied: This is a student account. Please select "Student" to login.');
+      if (error.message && error.message.includes('admin account')) {
+        setValidationError('⚠️ Access Denied: This is an admin account. Please select "Admin" to login.');
+      } else if (error.message && error.message.includes('premium account')) {
+        setValidationError('⚠️ Access Denied: This is a premium account. Please select "Premium" to login.');
+      } else if (error.message && error.message.includes('reader account')) {
+        setValidationError('⚠️ Access Denied: This is a reader account. Please select "Reader" to login.');
       } else {
         setValidationError(error.message || 'Login failed');
       }
@@ -76,14 +76,14 @@ const Login: React.FC<LoginProps> = ({ onLogin, onSwitchToRegister }) => {
 
   // Fetch security questions for login
   const fetchSecurityQuestionsForLogin = async () => {
-    if (!securityAdmissionNo) {
-      setSecurityMessage({ type: 'error', text: 'Please enter your admission number.' });
+    if (!securityUsername) {
+      setSecurityMessage({ type: 'error', text: 'Please enter your username.' });
       return;
     }
     setSecurityLoading(true);
     setSecurityMessage(null);
     try {
-      const response = await fetch(`${API_URL}/auth/security-questions/${encodeURIComponent(securityAdmissionNo)}`);
+      const response = await fetch(`${API_URL}/auth/security-questions/${encodeURIComponent(securityUsername)}`);
       const data = await response.json();
       if (response.ok && data.questions) {
         setSecurityQuestions({ q1: data.questions.question1, q2: data.questions.question2 });
@@ -112,7 +112,7 @@ const Login: React.FC<LoginProps> = ({ onLogin, onSwitchToRegister }) => {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          admissionNo: securityAdmissionNo,
+          username: securityUsername,
           answer1: securityAnswer1,
           answer2: securityAnswer2,
           loginAs: selectedRole
@@ -135,14 +135,14 @@ const Login: React.FC<LoginProps> = ({ onLogin, onSwitchToRegister }) => {
 
   // Fetch security questions for password reset
   const fetchSecurityQuestionsForReset = async () => {
-    if (!resetAdmissionNo) {
-      setResetMessage({ type: 'error', text: 'Please enter your admission number.' });
+    if (!resetUsername) {
+      setResetMessage({ type: 'error', text: 'Please enter your username.' });
       return;
     }
     setResetLoading(true);
     setResetMessage(null);
     try {
-      const response = await fetch(`${API_URL}/auth/security-questions/${encodeURIComponent(resetAdmissionNo)}`);
+      const response = await fetch(`${API_URL}/auth/security-questions/${encodeURIComponent(resetUsername)}`);
       const data = await response.json();
       if (response.ok && data.questions) {
         setResetQuestions({ q1: data.questions.question1, q2: data.questions.question2 });
@@ -170,7 +170,7 @@ const Login: React.FC<LoginProps> = ({ onLogin, onSwitchToRegister }) => {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          admissionNo: resetAdmissionNo,
+          username: resetUsername,
           answer1: resetAnswer1,
           answer2: resetAnswer2
         })
@@ -206,7 +206,7 @@ const Login: React.FC<LoginProps> = ({ onLogin, onSwitchToRegister }) => {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          admissionNo: resetAdmissionNo,
+          username: resetUsername,
           answer1: resetAnswer1,
           answer2: resetAnswer2,
           newPassword
@@ -231,7 +231,7 @@ const Login: React.FC<LoginProps> = ({ onLogin, onSwitchToRegister }) => {
 
   const resetForgotPasswordState = () => {
     setRecoveryStep('enter-id');
-    setResetAdmissionNo('');
+    setResetUsername('');
     setResetQuestions(null);
     setResetAnswer1('');
     setResetAnswer2('');
@@ -242,7 +242,7 @@ const Login: React.FC<LoginProps> = ({ onLogin, onSwitchToRegister }) => {
 
   const resetSecurityLoginState = () => {
     setSecurityStep('fetch');
-    setSecurityAdmissionNo('');
+    setSecurityUsername('');
     setSecurityQuestions(null);
     setSecurityAnswer1('');
     setSecurityAnswer2('');
@@ -315,7 +315,7 @@ const Login: React.FC<LoginProps> = ({ onLogin, onSwitchToRegister }) => {
             <div className="space-y-4">
               <div className="space-y-1.5">
                 <label className="text-xs font-semibold uppercase tracking-wider" style={{ color: colors.mutedText }}>
-                  Admission Number / Staff ID
+                  Username
                 </label>
                 <div className="relative group">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -323,9 +323,9 @@ const Login: React.FC<LoginProps> = ({ onLogin, onSwitchToRegister }) => {
                   </div>
                   <input
                     type="text"
-                    value={securityAdmissionNo}
-                    onChange={(e) => setSecurityAdmissionNo(e.target.value)}
-                    placeholder="Enter your ID"
+                    value={securityUsername}
+                    onChange={(e) => setSecurityUsername(e.target.value)}
+                    placeholder="Enter your username"
                     className={inputClassName}
                     style={{ ...inputStyle, paddingLeft: '2.5rem' }}
                   />
@@ -426,7 +426,7 @@ const Login: React.FC<LoginProps> = ({ onLogin, onSwitchToRegister }) => {
               Reset Password
             </h1>
             <p className="text-sm mt-1" style={{ color: colors.mutedText }}>
-              {recoveryStep === 'enter-id' && 'Enter your admission number to continue'}
+              {recoveryStep === 'enter-id' && 'Enter your username to continue'}
               {recoveryStep === 'answer-questions' && 'Answer your security questions'}
               {recoveryStep === 'reset-password' && 'Create a new password'}
             </p>
@@ -479,7 +479,7 @@ const Login: React.FC<LoginProps> = ({ onLogin, onSwitchToRegister }) => {
             <div className="space-y-4">
               <div className="space-y-1.5">
                 <label className="text-xs font-semibold uppercase tracking-wider" style={{ color: colors.mutedText }}>
-                  Admission Number / Staff ID
+                  Username
                 </label>
                 <div className="relative group">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -487,9 +487,9 @@ const Login: React.FC<LoginProps> = ({ onLogin, onSwitchToRegister }) => {
                   </div>
                   <input
                     type="text"
-                    value={resetAdmissionNo}
-                    onChange={(e) => setResetAdmissionNo(e.target.value)}
-                    placeholder="Enter your ID"
+                    value={resetUsername}
+                    onChange={(e) => setResetUsername(e.target.value)}
+                    placeholder="Enter your username"
                     className={inputClassName}
                     style={{ ...inputStyle, paddingLeft: '2.5rem' }}
                   />
@@ -736,55 +736,55 @@ const Login: React.FC<LoginProps> = ({ onLogin, onSwitchToRegister }) => {
           <div className="grid grid-cols-3 gap-2">
             <button
               type="button"
-              onClick={() => setSelectedRole('student')}
+              onClick={() => setSelectedRole('reader')}
               className="p-2 sm:p-3 rounded-2xl transition-all"
               style={{
-                backgroundColor: selectedRole === 'student' ? `${colors.accent}20` : colors.hoverBg,
-                border: `2px solid ${selectedRole === 'student' ? colors.accent : colors.logoAccent}40`,
+                backgroundColor: selectedRole === 'reader' ? `${colors.accent}20` : colors.hoverBg,
+                border: `2px solid ${selectedRole === 'reader' ? colors.accent : colors.logoAccent}40`,
               }}
             >
               <div className="flex flex-col items-center gap-1 sm:gap-2">
                 <div 
                   className="p-1.5 sm:p-2 rounded-xl"
                   style={{ 
-                    backgroundColor: selectedRole === 'student' ? colors.accent : colors.secondarySurface,
-                    color: selectedRole === 'student' ? colors.primaryBg : colors.mutedText,
-                  }}
-                >
-                  <GraduationCap size={18} />
-                </div>
-                <span 
-                  className="font-semibold text-[10px] sm:text-xs"
-                  style={{ color: selectedRole === 'student' ? colors.accent : colors.mutedText }}
-                >
-                  Student
-                </span>
-              </div>
-            </button>
-            <button
-              type="button"
-              onClick={() => setSelectedRole('lecturer')}
-              className="p-2 sm:p-3 rounded-2xl transition-all"
-              style={{
-                backgroundColor: selectedRole === 'lecturer' ? `${colors.accent}20` : colors.hoverBg,
-                border: `2px solid ${selectedRole === 'lecturer' ? colors.accent : colors.logoAccent}40`,
-              }}
-            >
-              <div className="flex flex-col items-center gap-1 sm:gap-2">
-                <div 
-                  className="p-1.5 sm:p-2 rounded-xl"
-                  style={{ 
-                    backgroundColor: selectedRole === 'lecturer' ? colors.accent : colors.secondarySurface,
-                    color: selectedRole === 'lecturer' ? colors.primaryBg : colors.mutedText,
+                    backgroundColor: selectedRole === 'reader' ? colors.accent : colors.secondarySurface,
+                    color: selectedRole === 'reader' ? colors.primaryBg : colors.mutedText,
                   }}
                 >
                   <BookOpen size={18} />
                 </div>
                 <span 
                   className="font-semibold text-[10px] sm:text-xs"
-                  style={{ color: selectedRole === 'lecturer' ? colors.accent : colors.mutedText }}
+                  style={{ color: selectedRole === 'reader' ? colors.accent : colors.mutedText }}
                 >
-                  Lecturer
+                  Reader
+                </span>
+              </div>
+            </button>
+            <button
+              type="button"
+              onClick={() => setSelectedRole('premium')}
+              className="p-2 sm:p-3 rounded-2xl transition-all"
+              style={{
+                backgroundColor: selectedRole === 'premium' ? `${colors.accent}20` : colors.hoverBg,
+                border: `2px solid ${selectedRole === 'premium' ? colors.accent : colors.logoAccent}40`,
+              }}
+            >
+              <div className="flex flex-col items-center gap-1 sm:gap-2">
+                <div 
+                  className="p-1.5 sm:p-2 rounded-xl"
+                  style={{ 
+                    backgroundColor: selectedRole === 'premium' ? colors.accent : colors.secondarySurface,
+                    color: selectedRole === 'premium' ? colors.primaryBg : colors.mutedText,
+                  }}
+                >
+                  <GraduationCap size={18} />
+                </div>
+                <span 
+                  className="font-semibold text-[10px] sm:text-xs"
+                  style={{ color: selectedRole === 'premium' ? colors.accent : colors.mutedText }}
+                >
+                  Premium
                 </span>
               </div>
             </button>
@@ -811,7 +811,7 @@ const Login: React.FC<LoginProps> = ({ onLogin, onSwitchToRegister }) => {
                   className="font-semibold text-[10px] sm:text-xs"
                   style={{ color: selectedRole === 'admin' ? colors.accent : colors.mutedText }}
                 >
-                  Staff
+                  Admin
                 </span>
               </div>
             </button>
@@ -836,7 +836,7 @@ const Login: React.FC<LoginProps> = ({ onLogin, onSwitchToRegister }) => {
               className="text-xs font-semibold uppercase tracking-wider"
               style={{ color: colors.mutedText }}
             >
-              {selectedRole === 'student' ? 'Admission Number' : selectedRole === 'lecturer' ? 'Staff ID' : 'Employee ID'}
+              Username
             </label>
             <div className="relative group">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -844,10 +844,10 @@ const Login: React.FC<LoginProps> = ({ onLogin, onSwitchToRegister }) => {
               </div>
               <input
                 type="text"
-                value={admissionNo}
-                onChange={(e) => handleAdmissionNoChange(e.target.value)}
-                placeholder={selectedRole === 'student' ? 'Enter admission number' : selectedRole === 'lecturer' ? 'LEC-001' : 'LIB-STAFF-001'}
-                className="block w-full pl-10 pr-3 py-2.5 rounded-lg placeholder:opacity-50 focus:outline-none focus:ring-2 transition-all uppercase"
+                value={username}
+                onChange={(e) => handleUsernameChange(e.target.value)}
+                placeholder="Enter your username"
+                className="block w-full pl-10 pr-3 py-2.5 rounded-lg placeholder:opacity-50 focus:outline-none focus:ring-2 transition-all"
                 style={{ 
                   ...inputStyle,
                   color: colors.primaryText,
@@ -907,7 +907,7 @@ const Login: React.FC<LoginProps> = ({ onLogin, onSwitchToRegister }) => {
               <div className="h-5 w-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
             ) : (
               <>
-                {selectedRole === 'admin' ? 'Access Admin Panel' : selectedRole === 'lecturer' ? 'Access Portal' : 'Log In'} 
+                {selectedRole === 'admin' ? 'Access Admin Panel' : 'Log In'} 
                 <ArrowRight size={18} />
               </>
             )}
@@ -929,9 +929,9 @@ const Login: React.FC<LoginProps> = ({ onLogin, onSwitchToRegister }) => {
           className="mt-6 pt-5 text-center"
           style={{ borderTop: `1px solid ${colors.logoAccent}30` }}
         >
-          {selectedRole === 'student' ? (
+          {selectedRole === 'reader' ? (
             <p className="text-sm" style={{ color: colors.mutedText }}>
-              New student?{' '}
+              New here?{' '}
               <button 
                 onClick={onSwitchToRegister} 
                 className="font-semibold hover:underline transition-colors"
@@ -942,7 +942,7 @@ const Login: React.FC<LoginProps> = ({ onLogin, onSwitchToRegister }) => {
             </p>
           ) : (
             <p className="text-sm" style={{ color: colors.mutedText }}>
-              {selectedRole === 'lecturer' ? 'Lecturer' : 'Library staff'} accounts are created by the system administrator.
+              {selectedRole === 'premium' ? 'Premium' : 'Admin'} accounts are created by the system administrator.
             </p>
           )}
         </div>

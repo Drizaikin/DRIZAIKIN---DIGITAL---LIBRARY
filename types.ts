@@ -38,10 +38,9 @@ export interface User {
   id: string;
   name: string;
   avatarUrl: string;
-  role: 'Student' | 'Lecturer' | 'Faculty' | 'Admin';
-  course?: string;
+  role: 'Reader' | 'Premium' | 'Admin';
   email?: string;
-  admissionNo?: string;
+  username?: string;
 }
 
 export interface ChatMessage {
@@ -64,7 +63,7 @@ export interface BorrowRequest {
   processedBy?: string;
   // Joined data from related tables
   userName?: string;
-  userAdmissionNo?: string;
+  userUsername?: string;
   bookTitle?: string;
   bookAuthor?: string;
   bookCoverUrl?: string;
