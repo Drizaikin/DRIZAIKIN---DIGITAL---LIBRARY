@@ -6,14 +6,14 @@ import BookCompact from './components/BookCompact';
 import BookTable from './components/BookTable';
 import BookDetailsModal from './components/BookDetailsModal';
 import AILibrarian from './components/AILibrarian';
-import MyLoans from './components/MyLoans';
+
 import Login from './components/Login';
 import Register from './components/Register';
 import AdminPanel from './components/AdminPanel';
 import UserProfile from './components/UserProfile';
 import PreferencesToolbar from './components/PreferencesToolbar';
 import Footer from './components/Footer';
-import { Book, Loan, User } from './types';
+import { Book, User } from './types';
 import { authService } from './services/authService';
 import { IconSize, ViewLayout, preferencesService } from './services/preferencesService';
 import { useTheme } from './contexts/ThemeContext';
@@ -22,7 +22,7 @@ import { Search, Filter, SortAsc, SortDesc, Sparkles, TrendingUp, Calendar } fro
 
 const API_URL = import.meta.env.VITE_API_URL || '/api';
 
-type View = 'browse' | 'loans' | 'ai' | 'admin';
+type View = 'browse' | 'ai' | 'admin';
 type AuthView = 'login' | 'register';
 type SortField = 'title' | 'author' | 'popularity' | 'publishedYear' | 'newest';
 type SortOrder = 'asc' | 'desc';
@@ -67,7 +67,7 @@ const App: React.FC = () => {
   const [activeTab, setActiveTab] = useState<NavTab>('library');
   const [user, setUser] = useState<User | null>(null);
   const [books, setBooks] = useState<Book[]>([]);
-  const [loans, setLoans] = useState<Loan[]>([]);
+
   const [recommendedBooks, setRecommendedBooks] = useState<Book[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
@@ -157,12 +157,7 @@ const App: React.FC = () => {
     }
   }, [isAuthenticated, user]);
 
-  // Fetch user loans when viewing loans
-  useEffect(() => {
-    if (isAuthenticated && user && currentView === 'loans') {
-      fetchLoans();
-    }
-  }, [isAuthenticated, user, currentView]);
+
 
   const fetchBooks = async () => {
     try {
@@ -201,26 +196,7 @@ const App: React.FC = () => {
     }
   };
 
-  const fetchLoans = async () => {
-    if (!user) return;
-    try {
-      const response = await fetch(`${API_URL}/loans/${user.id}`);
-      if (response.ok) {
-        const data = await response.json();
-        const transformedLoans: Loan[] = data.map((l: any) => ({
-          id: l.id,
-          book: l.book,
-          checkoutDate: new Date(l.checkoutDate),
-          dueDate: new Date(l.dueDate),
-          isOverdue: l.isOverdue,
-          fineAmount: l.fineAmount
-        }));
-        setLoans(transformedLoans);
-      }
-    } catch (err) {
-      console.error('Failed to fetch loans:', err);
-    }
-  };
+
 
   // Filter and sort books
   const filteredBooks = books
@@ -294,7 +270,7 @@ const App: React.FC = () => {
     setIsAuthenticated(false);
     setUser(null);
     setBooks([]);
-    setLoans([]);
+
     setRecommendedBooks([]);
     setCurrentView('browse');
     setActiveTab('library');
@@ -548,7 +524,7 @@ const App: React.FC = () => {
           </div>
         )}
 
-        {currentView === 'loans' && <MyLoans loans={loans} />}
+
         {currentView === 'ai' && <AILibrarian currentUser={user} />}
         {currentView === 'admin' && user?.role === 'Admin' && <AdminPanel />}
       </main>
