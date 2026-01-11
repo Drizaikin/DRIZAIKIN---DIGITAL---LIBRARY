@@ -5,13 +5,18 @@
  * 
  * Options:
  *   --dry-run    Run without making changes (default: true)
- *   --batch=N    Number of books to fetch (default: 5)
+ *   --batch=N    Number of books per API call (default: 10)
+ *   --max=N      Maximum books to process (default: 20)
  *   --live       Actually ingest books (sets dry-run to false)
+ *   --reset      Reset ingestion state to page 1
+ *   --status     Show current ingestion state
  */
 
 import dotenv from 'dotenv';
 dotenv.config({ path: '.env.local' });
+
 import { runIngestionJob, initializeServices } from './services/ingestion/orchestrator.js';
+import { getIngestionState, resetIngestionState, initSupabase as initState } from './services/ingestion/stateManager.js';
 
 async function main() {
   console.log('='.repeat(60));
@@ -21,19 +26,21 @@ async function main() {
   // Parse command line arguments
   const args = process.argv.slice(2);
   const isLive = args.includes('--live');
+  const isReset = args.includes('--reset');
+  const isStatus = args.includes('--status');
   const dryRun = !isLive;
   
-  let batchSize = 5;
+  let batchSize = 10;
   const batchArg = args.find(a => a.startsWith('--batch='));
   if (batchArg) {
-    batchSize = parseInt(batchArg.split('=')[1], 10) || 5;
+    batchSize = parseInt(batchArg.split('=')[1], 10) || 10;
   }
 
-  console.log(`\nConfiguration:`);
-  console.log(`  Dry Run: ${dryRun}`);
-  console.log(`  Batch Size: ${batchSize}`);
-  console.log(`  Mode: ${isLive ? 'LIVE (will make changes!)' : 'TEST (no changes)'}`);
-  console.log('');
+  let maxBooks = 20;
+  const maxArg = args.find(a => a.startsWith('--max='));
+  if (maxArg) {
+    maxBooks = parseInt(maxArg.split('=')[1], 10) || 20;
+  }
 
   // Check environment variables
   const supabaseUrl = process.env.SUPABASE_URL;
@@ -44,22 +51,57 @@ async function main() {
     process.exit(1);
   }
 
-  console.log(`Supabase URL: ${supabaseUrl}`);
-  console.log('Supabase Key: [REDACTED]');
-  console.log('');
+  console.log(`\nSupabase URL: ${supabaseUrl}`);
+  console.log('Supabase Key: [REDACTED]\n');
 
   try {
     // Initialize services
-    console.log('Initializing services...');
     initializeServices(supabaseUrl, supabaseKey);
-    console.log('Services initialized successfully.\n');
+    initState(supabaseUrl, supabaseKey);
+
+    // Handle status check
+    if (isStatus) {
+      const state = await getIngestionState('internet_archive');
+      console.log('Current Ingestion State:');
+      console.log('='.repeat(40));
+      console.log(`  Source: internet_archive`);
+      console.log(`  Current Page: ${state.last_page}`);
+      console.log(`  Total Ingested: ${state.total_ingested}`);
+      console.log(`  Last Run: ${state.last_run_at || 'Never'}`);
+      console.log(`  Last Status: ${state.last_run_status}`);
+      console.log(`  Last Run Added: ${state.last_run_added}`);
+      console.log(`  Last Run Skipped: ${state.last_run_skipped}`);
+      console.log(`  Last Run Failed: ${state.last_run_failed}`);
+      return;
+    }
+
+    // Handle reset
+    if (isReset) {
+      console.log('Resetting ingestion state to page 1...');
+      await resetIngestionState('internet_archive');
+      console.log('State reset successfully!');
+      return;
+    }
+
+    // Show configuration
+    console.log(`Configuration:`);
+    console.log(`  Dry Run: ${dryRun}`);
+    console.log(`  Batch Size: ${batchSize}`);
+    console.log(`  Max Books: ${maxBooks}`);
+    console.log(`  Mode: ${isLive ? 'LIVE (will make changes!)' : 'TEST (no changes)'}`);
+    console.log('');
+
+    // Get current state
+    const state = await getIngestionState('internet_archive');
+    console.log(`Resuming from page ${state.last_page} (total ingested: ${state.total_ingested})\n`);
 
     // Run ingestion
     console.log('Starting ingestion job...\n');
     const result = await runIngestionJob({
       batchSize,
+      maxBooks,
       dryRun,
-      delayBetweenBooksMs: 500 // Faster for testing
+      delayBetweenBooksMs: 300 // Faster for testing
     });
 
     // Display results
@@ -76,6 +118,10 @@ async function main() {
     console.log(`  Added: ${result.added}`);
     console.log(`  Skipped: ${result.skipped}`);
     console.log(`  Failed: ${result.failed}`);
+    console.log('');
+    console.log('Continuation:');
+    console.log(`  Next Page: ${result.nextPage}`);
+    console.log(`  Last Cursor: ${result.lastCursor || 'N/A'}`);
 
     if (result.errors.length > 0) {
       console.log('\nErrors:');

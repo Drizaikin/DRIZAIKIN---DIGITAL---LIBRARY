@@ -2,14 +2,13 @@
  * Vercel Cron Endpoint for Public Domain Book Ingestion
  * 
  * Handles GET requests from Vercel Cron to trigger automated ingestion.
+ * Uses stateful continuation to resume from last position.
+ * Designed for Vercel Hobby plan (1 cron job, once daily).
  * 
  * Requirements: 2.1, 2.2, 2.3
- * - 2.1: Triggered by Vercel Cron Jobs at configurable intervals
- * - 2.2: Logs job start time and batch parameters
- * - 2.3: Logs number of books processed, added, skipped, and failed
  */
 
-import { runIngestionJob, initializeServices, DEFAULT_BATCH_SIZE } from '../../services/ingestion/orchestrator.js';
+import { runIngestionJob, initializeServices, MAX_BOOKS_PER_RUN } from '../../services/ingestion/orchestrator.js';
 
 /**
  * Vercel Serverless Function Handler
@@ -39,7 +38,7 @@ export default async function handler(req, res) {
   }
 
   const startTime = new Date();
-  console.log(`[Ingest API] Cron job triggered at ${startTime.toISOString()}`);
+  console.log(`[Ingest API] Daily cron job triggered at ${startTime.toISOString()}`);
 
   try {
     // Initialize Supabase services
@@ -57,11 +56,12 @@ export default async function handler(req, res) {
     initializeServices(supabaseUrl, supabaseKey);
 
     // Log job start (Requirement 2.2)
-    console.log(`[Ingest API] Starting ingestion job with batch size: ${DEFAULT_BATCH_SIZE}`);
+    console.log(`[Ingest API] Starting stateful ingestion job, max books: ${MAX_BOOKS_PER_RUN}`);
 
-    // Run the ingestion job with default settings
+    // Run the ingestion job with stateful continuation
+    // The orchestrator will automatically resume from the last saved position
     const result = await runIngestionJob({
-      batchSize: DEFAULT_BATCH_SIZE,
+      maxBooks: MAX_BOOKS_PER_RUN,
       dryRun: false
     });
 
@@ -71,6 +71,7 @@ export default async function handler(req, res) {
     
     console.log(`[Ingest API] Job completed in ${durationMs}ms`);
     console.log(`[Ingest API] Results: processed=${result.processed}, added=${result.added}, skipped=${result.skipped}, failed=${result.failed}`);
+    console.log(`[Ingest API] Next run will start from page ${result.nextPage}`);
 
     // Return job summary
     return res.status(200).json({
@@ -85,6 +86,10 @@ export default async function handler(req, res) {
         added: result.added,
         skipped: result.skipped,
         failed: result.failed
+      },
+      continuation: {
+        nextPage: result.nextPage,
+        lastCursor: result.lastCursor
       },
       errors: result.errors.length > 0 ? result.errors : undefined
     });

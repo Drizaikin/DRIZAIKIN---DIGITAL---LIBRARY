@@ -2,7 +2,8 @@
  * Ingestion Orchestrator Service
  * 
  * Coordinates the entire ingestion workflow for public-domain books.
- * Implements error handling with continue-on-failure and dry-run mode.
+ * Implements stateful continuation for daily cron-based ingestion.
+ * Supports AI genre classification (non-blocking).
  * 
  * Requirements: 2.3, 7.1, 7.4, 9.3
  */
@@ -12,10 +13,13 @@ import { filterNewBooks, initSupabase as initDedup } from './deduplicationEngine
 import { downloadAndValidate, sanitizeFilename } from './pdfValidator.js';
 import { uploadPdf, initSupabase as initStorage } from './storageUploader.js';
 import { insertBook, createJobLog, logJobResult, initSupabase as initDb } from './databaseWriter.js';
+import { getIngestionState, markRunStarted, markRunCompleted, initSupabase as initState } from './stateManager.js';
 
-// Default configuration
-const DEFAULT_BATCH_SIZE = 30;
-const DEFAULT_DELAY_BETWEEN_BOOKS_MS = 1000;
+// Configuration for Vercel Hobby plan constraints
+const DEFAULT_BATCH_SIZE = 50;  // Books per API call
+const MAX_BOOKS_PER_RUN = 200;  // Max books per daily run (to stay within function limits)
+const DEFAULT_DELAY_BETWEEN_BOOKS_MS = 500;
+const VERCEL_FUNCTION_TIMEOUT_MS = 55000; // 55 seconds (leave buffer for 60s limit)
 
 /**
  * Generates a unique job ID
@@ -37,6 +41,7 @@ export function initializeServices(url, key) {
   initDedup(url, key);
   initStorage(url, key);
   initDb(url, key);
+  initState(url, key);
 }
 
 
@@ -90,7 +95,9 @@ async function processBook(book, dryRun = false) {
       language: book.language || null,
       source_identifier: identifier,
       pdf_url: storedPdfUrl,
-      description: book.description || null
+      description: book.description || null,
+      genres: null,  // Will be set by AI classification if enabled
+      subgenre: null
     };
     
     const insertResult = await insertBook(bookRecord);
@@ -110,25 +117,29 @@ async function processBook(book, dryRun = false) {
 
 
 /**
- * Runs a complete ingestion job
+ * Runs a complete ingestion job with stateful continuation
+ * Designed for daily cron execution on Vercel Hobby plan
+ * 
  * @param {Object} options - Job options
- * @param {number} [options.batchSize=30] - Books per batch
+ * @param {number} [options.batchSize=50] - Books per API call
+ * @param {number} [options.maxBooks=200] - Max books per run
  * @param {boolean} [options.dryRun=false] - If true, log only without side effects
- * @param {number} [options.page=1] - Page number for pagination
- * @param {number} [options.delayBetweenBooksMs=1000] - Delay between processing books
+ * @param {number} [options.startPage] - Override starting page (uses saved state if not provided)
+ * @param {number} [options.delayBetweenBooksMs=500] - Delay between processing books
  * @returns {Promise<JobResult>} Job execution summary
  */
 export async function runIngestionJob(options = {}) {
   const batchSize = options.batchSize || DEFAULT_BATCH_SIZE;
+  const maxBooks = options.maxBooks || MAX_BOOKS_PER_RUN;
   const dryRun = options.dryRun || false;
-  const page = options.page || 1;
   const delayBetweenBooksMs = options.delayBetweenBooksMs || DEFAULT_DELAY_BETWEEN_BOOKS_MS;
   
   const startedAt = new Date();
   const jobId = generateJobId();
+  const startTime = Date.now();
   
   console.log(`[Orchestrator] Starting ingestion job: ${jobId}`);
-  console.log(`[Orchestrator] Options: batchSize=${batchSize}, dryRun=${dryRun}, page=${page}`);
+  console.log(`[Orchestrator] Options: batchSize=${batchSize}, maxBooks=${maxBooks}, dryRun=${dryRun}`);
   
   // Initialize result tracking
   const result = {
@@ -140,8 +151,32 @@ export async function runIngestionJob(options = {}) {
     added: 0,
     skipped: 0,
     failed: 0,
-    errors: []
+    errors: [],
+    nextPage: null,
+    lastCursor: null
   };
+  
+  // Get current state (resume from last position)
+  let currentState;
+  try {
+    currentState = await getIngestionState('internet_archive');
+    console.log(`[Orchestrator] Resuming from page ${currentState.last_page}, total ingested: ${currentState.total_ingested}`);
+  } catch (error) {
+    console.error(`[Orchestrator] Failed to get state, starting from page 1: ${error.message}`);
+    currentState = { last_page: 1, total_ingested: 0 };
+  }
+  
+  // Use provided startPage or resume from saved state
+  let currentPage = options.startPage || currentState.last_page;
+  
+  // Mark run as started (unless dry run)
+  if (!dryRun) {
+    try {
+      await markRunStarted('internet_archive');
+    } catch (error) {
+      console.error(`[Orchestrator] Failed to mark run started: ${error.message}`);
+    }
+  }
   
   // Create job log entry (unless dry run)
   let dbJobId = null;
@@ -154,83 +189,107 @@ export async function runIngestionJob(options = {}) {
       }
     } catch (error) {
       console.error(`[Orchestrator] Failed to create job log: ${error.message}`);
-      // Continue without job logging
     }
   }
   
+  let totalProcessed = 0;
+  
   try {
-    // Step 1: Fetch books from Internet Archive
-    console.log(`[Orchestrator] Fetching books from Internet Archive...`);
-    const books = await fetchBooks({ batchSize, page });
-    
-    if (!books || books.length === 0) {
-      console.log(`[Orchestrator] No books fetched from Internet Archive`);
-      result.completedAt = new Date();
-      
-      if (dbJobId) {
-        await logJobResult({ ...result, jobId: dbJobId });
+    // Process books in batches until we hit maxBooks or timeout
+    while (totalProcessed < maxBooks) {
+      // Check if we're approaching timeout
+      const elapsed = Date.now() - startTime;
+      if (elapsed > VERCEL_FUNCTION_TIMEOUT_MS) {
+        console.log(`[Orchestrator] Approaching timeout (${elapsed}ms), stopping early`);
+        result.status = 'partial';
+        break;
       }
       
-      return result;
-    }
-    
-    console.log(`[Orchestrator] Fetched ${books.length} books from Internet Archive`);
-    
-    // Step 2: Filter out duplicates (unless dry run - still filter to show accurate counts)
-    let newBooks;
-    if (dryRun) {
-      // In dry run, still check for duplicates to report accurate counts
-      newBooks = await filterNewBooks(books);
-      result.skipped = books.length - newBooks.length;
-    } else {
-      newBooks = await filterNewBooks(books);
-      result.skipped = books.length - newBooks.length;
-    }
-    
-    console.log(`[Orchestrator] ${newBooks.length} new books to process, ${result.skipped} duplicates skipped`);
-    
-    // Step 3: Process each new book (with continue-on-failure)
-    for (let i = 0; i < newBooks.length; i++) {
-      const book = newBooks[i];
-      result.processed++;
+      // Calculate remaining books for this batch
+      const remainingQuota = maxBooks - totalProcessed;
+      const thisBatchSize = Math.min(batchSize, remainingQuota);
       
-      try {
-        const bookResult = await processBook(book, dryRun);
+      console.log(`[Orchestrator] Fetching page ${currentPage}, batch size ${thisBatchSize}...`);
+      
+      // Step 1: Fetch books from Internet Archive
+      const books = await fetchBooks({ batchSize: thisBatchSize, page: currentPage });
+      
+      if (!books || books.length === 0) {
+        console.log(`[Orchestrator] No more books available from Internet Archive`);
+        // Reset to page 1 for next run (cycle through catalog)
+        result.nextPage = 1;
+        break;
+      }
+      
+      console.log(`[Orchestrator] Fetched ${books.length} books from page ${currentPage}`);
+      
+      // Step 2: Filter out duplicates
+      const newBooks = await filterNewBooks(books);
+      const skippedCount = books.length - newBooks.length;
+      result.skipped += skippedCount;
+      
+      console.log(`[Orchestrator] ${newBooks.length} new books, ${skippedCount} duplicates skipped`);
+      
+      // Step 3: Process each new book
+      for (let i = 0; i < newBooks.length; i++) {
+        // Check timeout before each book
+        if (Date.now() - startTime > VERCEL_FUNCTION_TIMEOUT_MS) {
+          console.log(`[Orchestrator] Timeout reached during processing, stopping`);
+          result.status = 'partial';
+          break;
+        }
         
-        if (bookResult.status === 'added') {
-          result.added++;
-        } else if (bookResult.status === 'failed') {
+        const book = newBooks[i];
+        result.processed++;
+        totalProcessed++;
+        
+        try {
+          const bookResult = await processBook(book, dryRun);
+          
+          if (bookResult.status === 'added') {
+            result.added++;
+          } else if (bookResult.status === 'failed') {
+            result.failed++;
+            result.errors.push({
+              identifier: book.identifier,
+              error: bookResult.error || 'Unknown error',
+              timestamp: new Date().toISOString()
+            });
+          }
+        } catch (error) {
+          console.error(`[Orchestrator] Error processing book ${book.identifier}: ${error.message}`);
           result.failed++;
           result.errors.push({
             identifier: book.identifier,
-            error: bookResult.error || 'Unknown error',
+            error: error.message,
             timestamp: new Date().toISOString()
           });
         }
-      } catch (error) {
-        // Requirement 7.1, 7.4: Continue with remaining books on failure
-        console.error(`[Orchestrator] Error processing book ${book.identifier}: ${error.message}`);
-        result.failed++;
-        result.errors.push({
-          identifier: book.identifier,
-          error: error.message,
-          timestamp: new Date().toISOString()
-        });
+        
+        // Add delay between books (except for last book)
+        if (i < newBooks.length - 1 && delayBetweenBooksMs > 0 && !dryRun) {
+          await new Promise(resolve => setTimeout(resolve, delayBetweenBooksMs));
+        }
       }
       
-      // Add delay between books (except for last book)
-      if (i < newBooks.length - 1 && delayBetweenBooksMs > 0 && !dryRun) {
-        await new Promise(resolve => setTimeout(resolve, delayBetweenBooksMs));
+      // Move to next page
+      currentPage++;
+      result.nextPage = currentPage;
+      result.lastCursor = books[books.length - 1]?.identifier;
+      
+      // If we got fewer books than requested, we've reached the end
+      if (books.length < thisBatchSize) {
+        console.log(`[Orchestrator] Reached end of available books`);
+        result.nextPage = 1; // Reset for next run
+        break;
       }
     }
     
     // Determine final status
     if (result.failed > 0 && result.added > 0) {
       result.status = 'partial';
-    } else if (result.failed > 0 && result.added === 0) {
+    } else if (result.failed > 0 && result.added === 0 && result.processed > 0) {
       result.status = 'failed';
-    } else {
-      result.status = 'completed';
     }
     
   } catch (error) {
@@ -245,6 +304,15 @@ export async function runIngestionJob(options = {}) {
   
   result.completedAt = new Date();
   
+  // Save state for next run (unless dry run)
+  if (!dryRun) {
+    try {
+      await markRunCompleted('internet_archive', result);
+    } catch (error) {
+      console.error(`[Orchestrator] Failed to save state: ${error.message}`);
+    }
+  }
+  
   // Log job result to database (unless dry run)
   if (dbJobId && !dryRun) {
     try {
@@ -255,10 +323,12 @@ export async function runIngestionJob(options = {}) {
   }
   
   // Log summary
-  console.log(`[Orchestrator] Job ${jobId} completed with status: ${result.status}`);
+  const duration = Date.now() - startTime;
+  console.log(`[Orchestrator] Job ${jobId} completed in ${duration}ms with status: ${result.status}`);
   console.log(`[Orchestrator] Summary: processed=${result.processed}, added=${result.added}, skipped=${result.skipped}, failed=${result.failed}`);
+  console.log(`[Orchestrator] Next run will start from page ${result.nextPage}`);
   
   return result;
 }
 
-export { DEFAULT_BATCH_SIZE, DEFAULT_DELAY_BETWEEN_BOOKS_MS };
+export { DEFAULT_BATCH_SIZE, DEFAULT_DELAY_BETWEEN_BOOKS_MS, MAX_BOOKS_PER_RUN };

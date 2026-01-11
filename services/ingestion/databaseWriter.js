@@ -98,7 +98,9 @@ export async function insertBook(book) {
     category_id: book.category_id || null,
     total_copies: book.total_copies || 1,
     copies_available: book.copies_available || 1,
-    popularity: book.popularity || 0
+    popularity: book.popularity || 0,
+    genres: book.genres || null,  // AI classification genres (text[])
+    subgenre: book.subgenre || null  // AI classification sub-genre
   };
   
   console.log(`[DatabaseWriter] Inserting book: ${bookRecord.title}`);
