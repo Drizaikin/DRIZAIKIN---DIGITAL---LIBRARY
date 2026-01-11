@@ -10,13 +10,26 @@
  *   --live       Actually ingest books (sets dry-run to false)
  *   --reset      Reset ingestion state to page 1
  *   --status     Show current ingestion state
+ *   --classify   Enable AI genre classification
+ *   --mock-classify  Use mock classification (no API calls)
  */
 
 import dotenv from 'dotenv';
 dotenv.config({ path: '.env.local' });
 
+// Set classification environment variables before importing
+const args = process.argv.slice(2);
+if (args.includes('--classify')) {
+  process.env.ENABLE_GENRE_CLASSIFICATION = 'true';
+}
+if (args.includes('--mock-classify')) {
+  process.env.ENABLE_GENRE_CLASSIFICATION = 'true';
+  process.env.MOCK_GENRE_CLASSIFIER = 'true';
+}
+
 import { runIngestionJob, initializeServices } from './services/ingestion/orchestrator.js';
 import { getIngestionState, resetIngestionState, initSupabase as initState } from './services/ingestion/stateManager.js';
+import { isClassificationEnabled } from './services/ingestion/genreClassifier.js';
 
 async function main() {
   console.log('='.repeat(60));
@@ -89,6 +102,7 @@ async function main() {
     console.log(`  Batch Size: ${batchSize}`);
     console.log(`  Max Books: ${maxBooks}`);
     console.log(`  Mode: ${isLive ? 'LIVE (will make changes!)' : 'TEST (no changes)'}`);
+    console.log(`  AI Classification: ${isClassificationEnabled() ? 'ENABLED' : 'DISABLED'}`);
     console.log('');
 
     // Get current state

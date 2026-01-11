@@ -135,3 +135,45 @@ export async function getSourceBookCount(source) {
   
   return count || 0;
 }
+
+/**
+ * Checks if a book already has genres stored in the database
+ * Used for classification idempotency - skip re-classification if genres exist
+ * 
+ * @param {string} sourceIdentifier - Internet Archive identifier
+ * @returns {Promise<{hasGenres: boolean, genres: string[]|null, subgenre: string|null}>}
+ * 
+ * Requirements: 5.2, 5.3
+ */
+export async function getExistingGenres(sourceIdentifier) {
+  if (!sourceIdentifier || typeof sourceIdentifier !== 'string') {
+    return { hasGenres: false, genres: null, subgenre: null };
+  }
+
+  const client = getSupabase();
+  
+  const { data, error } = await client
+    .from('books')
+    .select('genres, subgenre')
+    .eq('source_identifier', sourceIdentifier)
+    .maybeSingle();
+  
+  if (error) {
+    console.error('[DeduplicationEngine] Error checking existing genres:', error.message);
+    // Return false on error to allow classification attempt
+    return { hasGenres: false, genres: null, subgenre: null };
+  }
+  
+  if (!data) {
+    return { hasGenres: false, genres: null, subgenre: null };
+  }
+  
+  // Check if genres array exists and has at least one element
+  const hasGenres = Array.isArray(data.genres) && data.genres.length > 0;
+  
+  return {
+    hasGenres,
+    genres: data.genres || null,
+    subgenre: data.subgenre || null
+  };
+}

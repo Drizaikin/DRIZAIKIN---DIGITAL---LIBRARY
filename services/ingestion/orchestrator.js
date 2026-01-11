@@ -9,11 +9,12 @@
  */
 
 import { fetchBooks, getPdfUrl } from './internetArchiveFetcher.js';
-import { filterNewBooks, initSupabase as initDedup } from './deduplicationEngine.js';
+import { filterNewBooks, initSupabase as initDedup, getExistingGenres } from './deduplicationEngine.js';
 import { downloadAndValidate, sanitizeFilename } from './pdfValidator.js';
 import { uploadPdf, initSupabase as initStorage } from './storageUploader.js';
 import { insertBook, createJobLog, logJobResult, initSupabase as initDb } from './databaseWriter.js';
 import { getIngestionState, markRunStarted, markRunCompleted, initSupabase as initState } from './stateManager.js';
+import { classifyBook, isClassificationEnabled } from './genreClassifier.js';
 
 // Configuration for Vercel Hobby plan constraints
 const DEFAULT_BATCH_SIZE = 50;  // Books per API call
@@ -87,7 +88,44 @@ async function processBook(book, dryRun = false) {
       }
     }
     
-    // Step 5: Insert book record into database
+    // Step 5: AI Genre Classification (non-blocking, with idempotency check)
+    let genres = null;
+    let subgenre = null;
+    
+    if (isClassificationEnabled()) {
+      try {
+        // Check if book already has genres (idempotency - Requirement 5.2, 5.3)
+        const existingGenres = await getExistingGenres(identifier);
+        
+        if (existingGenres.hasGenres) {
+          // Skip classification - use existing genres
+          genres = existingGenres.genres;
+          subgenre = existingGenres.subgenre;
+          console.log(`[Orchestrator] Using existing genres for ${identifier}: ${genres.join(', ')}${subgenre ? ` (${subgenre})` : ''}`);
+        } else {
+          // No existing genres - perform classification
+          const classification = await classifyBook({
+            title: book.title,
+            author: book.creator,
+            year: year,
+            description: book.description
+          });
+          
+          if (classification) {
+            genres = classification.genres;
+            subgenre = classification.subgenre;
+            console.log(`[Orchestrator] Classified as: ${genres.join(', ')}${subgenre ? ` (${subgenre})` : ''}`);
+          } else {
+            console.log(`[Orchestrator] Classification returned null for: ${identifier}`);
+          }
+        }
+      } catch (error) {
+        // Non-blocking - log and continue without genres
+        console.warn(`[Orchestrator] Classification failed for ${identifier}: ${error.message}`);
+      }
+    }
+    
+    // Step 6: Insert book record into database
     const bookRecord = {
       title: book.title || 'Unknown Title',
       author: book.creator || 'Unknown Author',
@@ -96,8 +134,8 @@ async function processBook(book, dryRun = false) {
       source_identifier: identifier,
       pdf_url: storedPdfUrl,
       description: book.description || null,
-      genres: null,  // Will be set by AI classification if enabled
-      subgenre: null
+      genres: genres,
+      subgenre: subgenre
     };
     
     const insertResult = await insertBook(bookRecord);
