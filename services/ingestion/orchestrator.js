@@ -13,7 +13,7 @@ import { filterNewBooks, initSupabase as initDedup, getExistingGenres } from './
 import { downloadAndValidate, sanitizeFilename } from './pdfValidator.js';
 import { uploadPdf, initSupabase as initStorage } from './storageUploader.js';
 import { insertBook, createJobLog, logJobResult, initSupabase as initDb } from './databaseWriter.js';
-import { getIngestionState, markRunStarted, markRunCompleted, initSupabase as initState } from './stateManager.js';
+import { getIngestionState, markRunStarted, markRunCompleted, isIngestionPaused, initSupabase as initState } from './stateManager.js';
 import { classifyBook, isClassificationEnabled } from './genreClassifier.js';
 
 // Configuration for Vercel Hobby plan constraints
@@ -191,8 +191,23 @@ export async function runIngestionJob(options = {}) {
     failed: 0,
     errors: [],
     nextPage: null,
-    lastCursor: null
+    lastCursor: null,
+    paused: false
   };
+  
+  // Check if ingestion is paused (Requirements 7.3, 7.4)
+  try {
+    const isPaused = await isIngestionPaused('internet_archive');
+    if (isPaused) {
+      console.log(`[Orchestrator] Ingestion is paused, skipping job ${jobId}`);
+      result.status = 'skipped';
+      result.paused = true;
+      result.completedAt = new Date();
+      return result;
+    }
+  } catch (error) {
+    console.warn(`[Orchestrator] Could not check pause state: ${error.message}, proceeding with ingestion`);
+  }
   
   // Get current state (resume from last position)
   let currentState;

@@ -6,6 +6,7 @@ import BookCompact from './components/BookCompact';
 import BookTable from './components/BookTable';
 import BookDetailsModal from './components/BookDetailsModal';
 import AILibrarian from './components/AILibrarian';
+import AdminHealthDashboard from './components/AdminHealthDashboard';
 
 import Login from './components/Login';
 import Register from './components/Register';
@@ -22,11 +23,11 @@ import { Search, Filter, SortAsc, SortDesc, Sparkles, TrendingUp, Calendar } fro
 
 const API_URL = import.meta.env.VITE_API_URL || '/api';
 
-type View = 'browse' | 'ai' | 'admin';
+type View = 'browse' | 'ai' | 'admin' | 'health';
 type AuthView = 'login' | 'register';
 type SortField = 'title' | 'author' | 'popularity' | 'publishedYear' | 'newest';
 type SortOrder = 'asc' | 'desc';
-type NavTab = 'library' | 'browse' | 'categories' | 'ai-librarian' | 'admin';
+type NavTab = 'library' | 'browse' | 'categories' | 'ai-librarian' | 'admin' | 'health';
 
 // Helper function to record search history
 const recordSearchHistory = async (userId: string, query: string) => {
@@ -106,6 +107,9 @@ const App: React.FC = () => {
         break;
       case 'admin':
         setCurrentView('admin');
+        break;
+      case 'health':
+        setCurrentView('health');
         break;
     }
   };
@@ -527,6 +531,7 @@ const App: React.FC = () => {
 
         {currentView === 'ai' && <AILibrarian currentUser={user} />}
         {currentView === 'admin' && user?.role === 'Admin' && <AdminPanel />}
+        {currentView === 'health' && user?.role === 'Admin' && <AdminHealthDashboard />}
       </main>
       
       <Footer />

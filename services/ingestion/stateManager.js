@@ -62,7 +62,10 @@ async function createDefaultState(source) {
     last_run_status: 'idle',
     last_run_added: 0,
     last_run_skipped: 0,
-    last_run_failed: 0
+    last_run_failed: 0,
+    is_paused: false,
+    paused_at: null,
+    paused_by: null
   };
 
   const { data, error } = await supabase
@@ -153,6 +156,89 @@ export async function resetIngestionState(source = 'internet_archive') {
     last_cursor: null,
     last_run_status: 'reset'
   });
+}
+
+/**
+ * Pause ingestion for a source
+ * @param {string} source - Source identifier
+ * @param {string} [pausedBy] - Identifier of who paused (for audit trail)
+ * @returns {Promise<Object>} Updated state with is_paused = true
+ */
+export async function pauseIngestion(source = 'internet_archive', pausedBy = 'admin') {
+  if (!supabase) {
+    throw new Error('Supabase client not initialized');
+  }
+
+  const { data, error } = await supabase
+    .from('ingestion_state')
+    .update({
+      is_paused: true,
+      paused_at: new Date().toISOString(),
+      paused_by: pausedBy,
+      updated_at: new Date().toISOString()
+    })
+    .eq('source', source)
+    .select()
+    .single();
+
+  if (error) {
+    console.error(`[StateManager] Error pausing ingestion: ${error.message}`);
+    throw error;
+  }
+
+  console.log(`[StateManager] Ingestion paused for ${source} by ${pausedBy}`);
+  return data;
+}
+
+/**
+ * Resume ingestion for a source
+ * @param {string} source - Source identifier
+ * @returns {Promise<Object>} Updated state with is_paused = false
+ */
+export async function resumeIngestion(source = 'internet_archive') {
+  if (!supabase) {
+    throw new Error('Supabase client not initialized');
+  }
+
+  const { data, error } = await supabase
+    .from('ingestion_state')
+    .update({
+      is_paused: false,
+      paused_at: null,
+      paused_by: null,
+      updated_at: new Date().toISOString()
+    })
+    .eq('source', source)
+    .select()
+    .single();
+
+  if (error) {
+    console.error(`[StateManager] Error resuming ingestion: ${error.message}`);
+    throw error;
+  }
+
+  console.log(`[StateManager] Ingestion resumed for ${source}`);
+  return data;
+}
+
+/**
+ * Check if ingestion is paused for a source
+ * @param {string} source - Source identifier
+ * @returns {Promise<boolean>} True if paused, false otherwise
+ */
+export async function isIngestionPaused(source = 'internet_archive') {
+  if (!supabase) {
+    throw new Error('Supabase client not initialized');
+  }
+
+  try {
+    const state = await getIngestionState(source);
+    return state.is_paused === true;
+  } catch (error) {
+    console.error(`[StateManager] Error checking pause state: ${error.message}`);
+    // Default to not paused if we can't check
+    return false;
+  }
 }
 
 export { supabase };
