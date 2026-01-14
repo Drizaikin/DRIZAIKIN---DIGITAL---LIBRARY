@@ -15,6 +15,7 @@ import { uploadPdf, initSupabase as initStorage } from './storageUploader.js';
 import { insertBook, createJobLog, logJobResult, initSupabase as initDb } from './databaseWriter.js';
 import { getIngestionState, markRunStarted, markRunCompleted, isIngestionPaused, initSupabase as initState } from './stateManager.js';
 import { classifyBook, isClassificationEnabled } from './genreClassifier.js';
+import { generateDescription, isDescriptionGenerationEnabled } from './descriptionGenerator.js';
 
 // Configuration for Vercel Hobby plan constraints
 const DEFAULT_BATCH_SIZE = 50;  // Books per API call
@@ -125,7 +126,31 @@ async function processBook(book, dryRun = false) {
       }
     }
     
-    // Step 6: Insert book record into database
+    // Step 6: AI Description Generation (non-blocking)
+    let description = book.description || null;
+    
+    if (isDescriptionGenerationEnabled()) {
+      try {
+        const aiDescription = await generateDescription({
+          title: book.title,
+          author: book.creator,
+          year: year,
+          description: book.description
+        });
+        
+        if (aiDescription) {
+          description = aiDescription;
+          console.log(`[Orchestrator] Generated AI description for ${identifier} (${aiDescription.length} chars)`);
+        } else {
+          console.log(`[Orchestrator] AI description generation returned null, using source description`);
+        }
+      } catch (error) {
+        // Non-blocking - log and continue with original description
+        console.warn(`[Orchestrator] Description generation failed for ${identifier}: ${error.message}`);
+      }
+    }
+    
+    // Step 7: Insert book record into database
     const bookRecord = {
       title: book.title || 'Unknown Title',
       author: book.creator || 'Unknown Author',
@@ -133,7 +158,7 @@ async function processBook(book, dryRun = false) {
       language: book.language || null,
       source_identifier: identifier,
       pdf_url: storedPdfUrl,
-      description: book.description || null,
+      description: description,
       genres: genres,
       subgenre: subgenre
     };

@@ -9,7 +9,7 @@
 -- Bucket Settings:
 -- Name: book-pdfs
 -- Public: Yes (so users can read without authentication)
--- File size limit: 50MB (adjust as needed)
+-- File size limit: 52428800 bytes (50MB)
 -- Allowed MIME types: application/pdf
 
 -- 2. Set up storage policies (run in SQL Editor)
@@ -19,20 +19,25 @@ CREATE POLICY "Public Access for Reading PDFs"
 ON storage.objects FOR SELECT
 USING (bucket_id = 'book-pdfs');
 
--- Allow authenticated users (admins) to upload PDFs
-CREATE POLICY "Admin Upload PDFs"
+-- Allow service role to upload PDFs (for ingestion)
+CREATE POLICY "Service Upload PDFs"
 ON storage.objects FOR INSERT
-WITH CHECK (bucket_id = 'book-pdfs');
+WITH CHECK (bucket_id = 'book-pdfs' AND (auth.role() = 'service_role' OR auth.role() = 'authenticated'));
 
--- Allow authenticated users (admins) to update PDFs
-CREATE POLICY "Admin Update PDFs"
+-- Allow service role to update PDFs
+CREATE POLICY "Service Update PDFs"
 ON storage.objects FOR UPDATE
-USING (bucket_id = 'book-pdfs');
+USING (bucket_id = 'book-pdfs' AND (auth.role() = 'service_role' OR auth.role() = 'authenticated'));
 
--- Allow authenticated users (admins) to delete PDFs
-CREATE POLICY "Admin Delete PDFs"
+-- Allow service role to delete PDFs
+CREATE POLICY "Service Delete PDFs"
 ON storage.objects FOR DELETE
-USING (bucket_id = 'book-pdfs');
+USING (bucket_id = 'book-pdfs' AND (auth.role() = 'service_role' OR auth.role() = 'authenticated'));
+
+-- 3. Update bucket size limit (if bucket already exists)
+UPDATE storage.buckets
+SET file_size_limit = 52428800  -- 50MB in bytes
+WHERE id = 'book-pdfs';
 
 -- =============================================
 -- MANUAL STEPS IN SUPABASE DASHBOARD:
@@ -42,7 +47,8 @@ USING (bucket_id = 'book-pdfs');
 -- 2. Click "New bucket"
 -- 3. Name: book-pdfs
 -- 4. Toggle "Public bucket" ON
--- 5. Click "Create bucket"
+-- 5. Set "File size limit": 52428800 (50MB)
+-- 6. Click "Create bucket"
 -- 
 -- The policies above will be applied automatically
 -- if you run this SQL, or you can set them manually

@@ -30,6 +30,7 @@ if (args.includes('--mock-classify')) {
 import { runIngestionJob, initializeServices } from './services/ingestion/orchestrator.js';
 import { getIngestionState, resetIngestionState, initSupabase as initState } from './services/ingestion/stateManager.js';
 import { isClassificationEnabled } from './services/ingestion/genreClassifier.js';
+import { isDescriptionGenerationEnabled } from './services/ingestion/descriptionGenerator.js';
 
 async function main() {
   console.log('='.repeat(60));
@@ -103,6 +104,7 @@ async function main() {
     console.log(`  Max Books: ${maxBooks}`);
     console.log(`  Mode: ${isLive ? 'LIVE (will make changes!)' : 'TEST (no changes)'}`);
     console.log(`  AI Classification: ${isClassificationEnabled() ? 'ENABLED' : 'DISABLED'}`);
+    console.log(`  AI Descriptions: ${isDescriptionGenerationEnabled() ? 'ENABLED' : 'DISABLED'}`);
     console.log('');
 
     // Get current state

@@ -93,6 +93,8 @@ export async function insertBook(book) {
     source: INTERNET_ARCHIVE_SOURCE, // Requirement 6.2: Set source to "internet_archive"
     source_identifier: book.source_identifier,
     pdf_url: book.pdf_url,
+    has_soft_copy: true, // Internet Archive books always have soft copies
+    soft_copy_url: book.pdf_url, // Use the same PDF URL for soft copy access
     description: book.description || null,
     cover_url: book.cover_url || 'https://picsum.photos/seed/book/400/600',
     category_id: book.category_id || null,
