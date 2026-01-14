@@ -18,6 +18,10 @@
       "use": "@vercel/node"
     },
     {
+      "src": "api/admin/health/actions.js",
+      "use": "@vercel/node"
+    },
+    {
       "src": "package.json",
       "use": "@vercel/static-build",
       "config": {
@@ -26,6 +30,10 @@
     }
   ],
   "routes": [
+    {
+      "src": "/api/admin/health/actions",
+      "dest": "/api/admin/health/actions.js"
+    },
     {
       "src": "/api/admin/health",
       "dest": "/api/admin/health/index.js"
