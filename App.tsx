@@ -315,12 +315,14 @@ const App: React.FC = () => {
           <UserProfile user={user} onClose={() => setShowProfile(false)} onUserUpdate={handleUserUpdate} />
         )}
 
-        {/* Hero Section */}
-        <section className="flex flex-col items-center justify-center pt-20 pb-6 px-4" style={{ minHeight: '260px' }}>
-          <img src="/assets/logo-full.png" alt="DRIZAIKN - Architect of Knowledge" className="h-28 md:h-36 lg:h-44 w-auto object-contain" />
-        </section>
+        {/* Hero Section - only show on non-admin routes */}
+        {!location.pathname.startsWith('/admin') && (
+          <section className="flex flex-col items-center justify-center pt-20 pb-6 px-4" style={{ minHeight: '260px' }}>
+            <img src="/assets/logo-full.png" alt="DRIZAIKN - Architect of Knowledge" className="h-28 md:h-36 lg:h-44 w-auto object-contain" />
+          </section>
+        )}
 
-        <main className="flex-grow pb-20 lg:pb-12 px-4 md:px-6">
+        <main className={`flex-grow pb-20 lg:pb-12 px-4 md:px-6 ${location.pathname.startsWith('/admin') ? 'pt-20' : ''}`}>
           {/* Admin Routes - protected by AdminGuard */}
           <Routes>
             <Route 
