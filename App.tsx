@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { BrowserRouter, Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import BookCard from './components/BookCard';
 import BookList from './components/BookList';
@@ -6,11 +7,11 @@ import BookCompact from './components/BookCompact';
 import BookTable from './components/BookTable';
 import BookDetailsModal from './components/BookDetailsModal';
 import AILibrarian from './components/AILibrarian';
-import AdminHealthDashboard from './components/AdminHealthDashboard';
+import AdminGuard from './components/AdminGuard';
+import AdminRoutes from './components/AdminRoutes';
 
 import Login from './components/Login';
 import Register from './components/Register';
-import AdminPanel from './components/AdminPanel';
 import UserProfile from './components/UserProfile';
 import PreferencesToolbar from './components/PreferencesToolbar';
 import Footer from './components/Footer';
@@ -23,11 +24,10 @@ import { Search, Filter, SortAsc, SortDesc, Sparkles, TrendingUp, Calendar } fro
 
 const API_URL = import.meta.env.VITE_API_URL || '/api';
 
-type View = 'browse' | 'ai' | 'admin' | 'health';
+type View = 'browse' | 'ai';
 type AuthView = 'login' | 'register';
 type SortField = 'title' | 'author' | 'popularity' | 'publishedYear' | 'newest';
 type SortOrder = 'asc' | 'desc';
-type NavTab = 'library' | 'browse' | 'categories' | 'ai-librarian' | 'admin' | 'health';
 
 // Helper function to record search history
 const recordSearchHistory = async (userId: string, query: string) => {
@@ -65,7 +65,6 @@ const App: React.FC = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [authView, setAuthView] = useState<AuthView>('login');
   const [currentView, setCurrentView] = useState<View>('browse');
-  const [activeTab, setActiveTab] = useState<NavTab>('library');
   const [user, setUser] = useState<User | null>(null);
   const [books, setBooks] = useState<Book[]>([]);
 
@@ -92,27 +91,6 @@ const App: React.FC = () => {
 
   // Track last recorded search to avoid duplicates
   const lastRecordedSearch = React.useRef<string>('');
-
-  // Handle tab changes - map tabs to views
-  const handleTabChange = (tab: NavTab) => {
-    setActiveTab(tab);
-    switch (tab) {
-      case 'library':
-      case 'browse':
-      case 'categories':
-        setCurrentView('browse');
-        break;
-      case 'ai-librarian':
-        setCurrentView('ai');
-        break;
-      case 'admin':
-        setCurrentView('admin');
-        break;
-      case 'health':
-        setCurrentView('health');
-        break;
-    }
-  };
 
   // Record search history when user performs a search (debounced)
   useEffect(() => {
@@ -277,100 +255,87 @@ const App: React.FC = () => {
 
     setRecommendedBooks([]);
     setCurrentView('browse');
-    setActiveTab('library');
     setShowProfile(false);
   };
 
-  const handleUserUpdate = (updatedUser: User) => {
-    setUser(updatedUser);
-    authService.updateStoredUser(updatedUser);
-  };
+  // Wrapper component to handle logout with navigation (must be inside BrowserRouter)
+  const AuthenticatedAppContent: React.FC = () => {
+    const navigate = useNavigate();
+    const location = useLocation();
 
-  const handleIconSizeChange = (size: IconSize) => { setIconSize(size); preferencesService.setIconSize(size); };
-  const handleViewLayoutChange = (layout: ViewLayout) => { setViewLayout(layout); preferencesService.setViewLayout(layout); };
-
-  // Loading state
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: theme.colors.primaryBg }}>
-        <div className="flex flex-col items-center gap-4">
-          <img src="/assets/logo-icon.png" alt="DRIZAIKN" className="h-16 w-16 animate-pulse" />
-          <div className="h-10 w-10 border-4 rounded-full animate-spin" style={{ borderColor: `${theme.colors.logoAccent}40`, borderTopColor: theme.colors.accent }} />
-          <p className="text-sm font-medium animate-pulse" style={{ color: theme.colors.accent }}>Loading Drizaikn...</p>
-        </div>
-      </div>
-    );
-  }
-
-  // Not authenticated - show login/register
-  if (!isAuthenticated) {
-    return (
-      <div className="min-h-screen" style={{ backgroundColor: theme.colors.primaryBg }}>
-        {error && (
-          <div className="fixed top-4 right-4 left-4 md:left-auto px-4 py-3 rounded-xl shadow-lg z-50 animate-fade-in-up backdrop-blur-sm"
-            style={{ backgroundColor: '#ef4444', color: '#fff' }}>
-            <div className="flex items-center gap-2">
-              <span className="flex-1 text-sm">{error}</span>
-              <button onClick={() => setError(null)} className="p-1 hover:opacity-80">×</button>
-            </div>
-          </div>
-        )}
-        {authView === 'login' ? (
-          <Login onLogin={handleLogin} onSwitchToRegister={() => setAuthView('register')} />
-        ) : (
-          <Register onRegister={handleRegister} onSwitchToLogin={() => setAuthView('login')} />
-        )}
-      </div>
-    );
-  }
-
-  // Main authenticated view
-  return (
-    <div className="min-h-screen flex flex-col" style={{ backgroundColor: theme.colors.primaryBg }}>
-      <Navbar 
-        currentView={currentView} 
-        setCurrentView={setCurrentView} 
-        user={user!}
-        onLogout={handleLogout}
-        onOpenProfile={() => setShowProfile(true)}
-        searchQuery={searchQuery}
-        onSearchChange={setSearchQuery}
-      />
+    const handleLogoutWithRedirect = () => {
+      // Check if current route is an admin route
+      const isAdminRoute = location.pathname.startsWith('/admin');
       
-      {/* Book Details Modal */}
-      {selectedBook && (
-        <BookDetailsModal 
-          book={selectedBook} 
-          onClose={() => setSelectedBook(null)}
-          userId={user?.id}
-          onBorrowRequest={async (bookId: string) => {
-            if (!user) return { success: false, error: 'Please log in to borrow books.' };
-            try {
-              const response = await fetch(`${API_URL}/borrow-requests`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ userId: user.id, bookId })
-              });
-              const data = await response.json();
-              if (response.ok && data.success) { fetchBooks(); return { success: true }; }
-              return { success: false, error: data.error || 'Failed to submit borrow request.' };
-            } catch (err) { return { success: false, error: 'Network error. Please try again.' }; }
-          }}
+      // Perform logout
+      handleLogout();
+      
+      // Navigate to root/browse if on admin route
+      if (isAdminRoute) {
+        navigate('/');
+      }
+    };
+
+    return (
+      <div className="min-h-screen flex flex-col" style={{ backgroundColor: theme.colors.primaryBg }}>
+        <Navbar 
+          currentView={currentView} 
+          setCurrentView={setCurrentView} 
+          user={user!}
+          onLogout={handleLogoutWithRedirect}
+          onOpenProfile={() => setShowProfile(true)}
+          searchQuery={searchQuery}
+          onSearchChange={setSearchQuery}
         />
-      )}
-      
-      {/* User Profile Modal */}
-      {showProfile && user && (
-        <UserProfile user={user} onClose={() => setShowProfile(false)} onUserUpdate={handleUserUpdate} />
-      )}
+        
+        {/* Book Details Modal */}
+        {selectedBook && (
+          <BookDetailsModal 
+            book={selectedBook} 
+            onClose={() => setSelectedBook(null)}
+            userId={user?.id}
+            onBorrowRequest={async (bookId: string) => {
+              if (!user) return { success: false, error: 'Please log in to borrow books.' };
+              try {
+                const response = await fetch(`${API_URL}/borrow-requests`, {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ userId: user.id, bookId })
+                });
+                const data = await response.json();
+                if (response.ok && data.success) { fetchBooks(); return { success: true }; }
+                return { success: false, error: data.error || 'Failed to submit borrow request.' };
+              } catch (err) { return { success: false, error: 'Network error. Please try again.' }; }
+            }}
+          />
+        )}
+        
+        {/* User Profile Modal */}
+        {showProfile && user && (
+          <UserProfile user={user} onClose={() => setShowProfile(false)} onUserUpdate={handleUserUpdate} />
+        )}
 
-      {/* Hero Section */}
-      <section className="flex flex-col items-center justify-center pt-20 pb-6 px-4" style={{ minHeight: '260px' }}>
-        <img src="/assets/logo-full.png" alt="DRIZAIKN - Architect of Knowledge" className="h-28 md:h-36 lg:h-44 w-auto object-contain" />
-      </section>
+        {/* Hero Section */}
+        <section className="flex flex-col items-center justify-center pt-20 pb-6 px-4" style={{ minHeight: '260px' }}>
+          <img src="/assets/logo-full.png" alt="DRIZAIKN - Architect of Knowledge" className="h-28 md:h-36 lg:h-44 w-auto object-contain" />
+        </section>
 
-      <main className="flex-grow pb-20 lg:pb-12 px-4 md:px-6">
-        {currentView === 'browse' && (
+        <main className="flex-grow pb-20 lg:pb-12 px-4 md:px-6">
+          {/* Admin Routes - protected by AdminGuard */}
+          <Routes>
+            <Route 
+              path="/admin/*" 
+              element={
+                <AdminGuard user={user} isLoading={loading}>
+                  <AdminRoutes />
+                </AdminGuard>
+              } 
+            />
+            <Route 
+              path="*" 
+              element={
+                <>
+                  {currentView === 'browse' && (
           <div className="max-w-7xl mx-auto animate-fade-in-up">
             {/* User Info Card */}
             <div className="p-4 rounded-2xl mb-6" style={{ backgroundColor: theme.colors.secondarySurface, border: `1px solid ${theme.colors.logoAccent}30` }}>
@@ -530,12 +495,65 @@ const App: React.FC = () => {
 
 
         {currentView === 'ai' && <AILibrarian currentUser={user} />}
-        {currentView === 'admin' && user?.role === 'Admin' && <AdminPanel />}
-        {currentView === 'health' && user?.role === 'Admin' && <AdminHealthDashboard />}
-      </main>
-      
-      <Footer />
-    </div>
+                </>
+              } 
+            />
+          </Routes>
+        </main>
+        
+        <Footer />
+      </div>
+    );
+  };
+
+  const handleUserUpdate = (updatedUser: User) => {
+    setUser(updatedUser);
+    authService.updateStoredUser(updatedUser);
+  };
+
+  const handleIconSizeChange = (size: IconSize) => { setIconSize(size); preferencesService.setIconSize(size); };
+  const handleViewLayoutChange = (layout: ViewLayout) => { setViewLayout(layout); preferencesService.setViewLayout(layout); };
+
+  // Loading state
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: theme.colors.primaryBg }}>
+        <div className="flex flex-col items-center gap-4">
+          <img src="/assets/logo-icon.png" alt="DRIZAIKN" className="h-16 w-16 animate-pulse" />
+          <div className="h-10 w-10 border-4 rounded-full animate-spin" style={{ borderColor: `${theme.colors.logoAccent}40`, borderTopColor: theme.colors.accent }} />
+          <p className="text-sm font-medium animate-pulse" style={{ color: theme.colors.accent }}>Loading Drizaikn...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Not authenticated - show login/register
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-screen" style={{ backgroundColor: theme.colors.primaryBg }}>
+        {error && (
+          <div className="fixed top-4 right-4 left-4 md:left-auto px-4 py-3 rounded-xl shadow-lg z-50 animate-fade-in-up backdrop-blur-sm"
+            style={{ backgroundColor: '#ef4444', color: '#fff' }}>
+            <div className="flex items-center gap-2">
+              <span className="flex-1 text-sm">{error}</span>
+              <button onClick={() => setError(null)} className="p-1 hover:opacity-80">×</button>
+            </div>
+          </div>
+        )}
+        {authView === 'login' ? (
+          <Login onLogin={handleLogin} onSwitchToRegister={() => setAuthView('register')} />
+        ) : (
+          <Register onRegister={handleRegister} onSwitchToLogin={() => setAuthView('login')} />
+        )}
+      </div>
+    );
+  }
+
+  // Main authenticated view
+  return (
+    <BrowserRouter>
+      <AuthenticatedAppContent />
+    </BrowserRouter>
   );
 };
 
