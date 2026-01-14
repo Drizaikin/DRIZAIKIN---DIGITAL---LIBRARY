@@ -248,7 +248,7 @@ const AdminHealthDashboard: React.FC = () => {
   }
 
   return (
-    <div className="max-w-7xl mx-auto animate-fade-in-up">
+    <div className="w-full max-w-full overflow-x-hidden animate-fade-in-up">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
         <div>
@@ -267,7 +267,7 @@ const AdminHealthDashboard: React.FC = () => {
         </div>
         
         {/* Manual Refresh Button (Requirement 8.5) */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 flex-wrap">
           {lastRefresh && (
             <span 
               className="text-xs flex items-center gap-1"
@@ -280,7 +280,7 @@ const AdminHealthDashboard: React.FC = () => {
           <button
             onClick={() => fetchMetrics(true)}
             disabled={refreshing}
-            className="flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all"
+            className="flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all whitespace-nowrap"
             style={{ 
               backgroundColor: theme.colors.secondarySurface,
               color: theme.colors.primaryText,

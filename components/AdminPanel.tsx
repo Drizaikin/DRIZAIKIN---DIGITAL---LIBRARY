@@ -498,7 +498,7 @@ const AdminPanel: React.FC = () => {
   }
 
   return (
-    <div className="max-w-7xl mx-auto">
+    <div className="w-full max-w-full overflow-x-hidden">
       <header className="mb-6 md:mb-8">
         <h2 
           className="text-2xl md:text-3xl font-serif font-bold mb-2"
