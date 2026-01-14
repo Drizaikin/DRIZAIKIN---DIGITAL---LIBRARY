@@ -263,6 +263,19 @@ const App: React.FC = () => {
     const navigate = useNavigate();
     const location = useLocation();
 
+    // Unified handler to sync State and Navigation
+    const handleNavigation = (view: 'browse' | 'ai' | 'admin') => {
+      if (view === 'admin') {
+        navigate('/admin'); // Force URL change to trigger AdminRoutes
+      } else {
+        setCurrentView(view as View);
+        // If we are currently in admin and click browse/ai, go back to root
+        if (location.pathname.startsWith('/admin')) {
+          navigate('/');
+        }
+      }
+    };
+
     const handleLogoutWithRedirect = () => {
       // Check if current route is an admin route
       const isAdminRoute = location.pathname.startsWith('/admin');
@@ -280,7 +293,7 @@ const App: React.FC = () => {
       <div className="min-h-screen flex flex-col" style={{ backgroundColor: theme.colors.primaryBg }}>
         <Navbar 
           currentView={currentView} 
-          setCurrentView={setCurrentView} 
+          setCurrentView={handleNavigation as any} 
           user={user!}
           onLogout={handleLogoutWithRedirect}
           onOpenProfile={() => setShowProfile(true)}
@@ -337,7 +350,7 @@ const App: React.FC = () => {
               path="*" 
               element={
                 <>
-                  {currentView === 'browse' && (
+                  {currentView === 'browse' && !location.pathname.startsWith('/admin') && (
           <div className="max-w-7xl mx-auto animate-fade-in-up">
             {/* User Info Card */}
             <div className="p-4 rounded-2xl mb-6" style={{ backgroundColor: theme.colors.secondarySurface, border: `1px solid ${theme.colors.logoAccent}30` }}>
@@ -497,6 +510,13 @@ const App: React.FC = () => {
 
 
         {currentView === 'ai' && <AILibrarian currentUser={user} />}
+        
+        {/* Fallback for the transition period */}
+        {!location.pathname.startsWith('/admin') && currentView !== 'browse' && currentView !== 'ai' && (
+          <div className="flex items-center justify-center h-64">
+            <div className="animate-pulse text-slate-400">Loading...</div>
+          </div>
+        )}
                 </>
               } 
             />
