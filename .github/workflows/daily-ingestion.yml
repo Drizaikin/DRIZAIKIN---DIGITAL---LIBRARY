@@ -1,0 +1,72 @@
+# Daily Book Ingestion Cron Job
+# This GitHub Actions workflow triggers the ingestion endpoint daily at 3 AM UTC
+# Use this as an alternative to Vercel Cron (which requires Pro plan)
+
+name: Daily Book Ingestion
+
+on:
+  schedule:
+    # Run at 3:00 AM UTC every day (same as vercel.json cron)
+    - cron: '0 3 * * *'
+  
+  # Allow manual trigger from GitHub Actions UI
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Dry run (no actual ingestion)'
+        required: false
+        default: 'false'
+        type: boolean
+
+jobs:
+  trigger-ingestion:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Trigger Ingestion Endpoint
+        env:
+          VERCEL_URL: ${{ secrets.VERCEL_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          echo "Triggering daily ingestion at $(date -u)"
+          
+          # Build the URL
+          URL="${VERCEL_URL}/api/ingest"
+          
+          # Make the request with authorization header if CRON_SECRET is set
+          if [ -n "$CRON_SECRET" ]; then
+            RESPONSE=$(curl -s -w "\n%{http_code}" -X GET "$URL" \
+              -H "Authorization: Bearer $CRON_SECRET" \
+              -H "Content-Type: application/json")
+          else
+            RESPONSE=$(curl -s -w "\n%{http_code}" -X GET "$URL" \
+              -H "Content-Type: application/json")
+          fi
+          
+          # Extract HTTP status code (last line)
+          HTTP_CODE=$(echo "$RESPONSE" | tail -n1)
+          # Extract response body (all but last line)
+          BODY=$(echo "$RESPONSE" | sed '$d')
+          
+          echo "HTTP Status: $HTTP_CODE"
+          echo "Response: $BODY"
+          
+          # Check if request was successful
+          if [ "$HTTP_CODE" -ge 200 ] && [ "$HTTP_CODE" -lt 300 ]; then
+            echo "✅ Ingestion triggered successfully"
+            
+            # Parse and display summary if jq is available
+            if command -v jq &> /dev/null; then
+              echo ""
+              echo "=== Job Summary ==="
+              echo "$BODY" | jq -r '.summary // empty' 2>/dev/null || true
+            fi
+          else
+            echo "❌ Ingestion failed with status $HTTP_CODE"
+            exit 1
+          fi
+
+      - name: Log Completion
+        if: success()
+        run: |
+          echo "Daily ingestion job completed at $(date -u)"
