@@ -10,7 +10,7 @@
 import { createClient } from '@supabase/supabase-js';
 
 // Storage bucket name
-const BUCKET_NAME = 'books';
+const BUCKET_NAME = 'book-pdfs';
 
 // Path prefix for Internet Archive books
 const IA_PATH_PREFIX = 'internet_archive';
