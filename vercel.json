@@ -22,6 +22,18 @@
       "use": "@vercel/node"
     },
     {
+      "src": "api/admin/ingestion/filters.js",
+      "use": "@vercel/node"
+    },
+    {
+      "src": "api/admin/ingestion/filter-stats.js",
+      "use": "@vercel/node"
+    },
+    {
+      "src": "api/admin/books/bulk-update-categories.js",
+      "use": "@vercel/node"
+    },
+    {
       "src": "package.json",
       "use": "@vercel/static-build",
       "config": {
@@ -30,6 +42,18 @@
     }
   ],
   "routes": [
+    {
+      "src": "/api/admin/ingestion/filter-stats",
+      "dest": "/api/admin/ingestion/filter-stats.js"
+    },
+    {
+      "src": "/api/admin/ingestion/filters",
+      "dest": "/api/admin/ingestion/filters.js"
+    },
+    {
+      "src": "/api/admin/books/bulk-update-categories",
+      "dest": "/api/admin/books/bulk-update-categories.js"
+    },
     {
       "src": "/api/admin/health/actions",
       "dest": "/api/admin/health/actions.js"
