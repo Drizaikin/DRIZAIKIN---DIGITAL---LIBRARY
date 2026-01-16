@@ -1012,7 +1012,13 @@ const AdminPanel: React.FC = () => {
                       <td className="px-4 py-3">
                         <div className="flex items-center justify-center gap-1">
                           <button
-                            onClick={() => setEditingBook(book)}
+                            onClick={() => {
+                              // Convert category name to categoryId (slug format)
+                              const categoryId = book.category 
+                                ? book.category.toLowerCase().replace(/[^a-z0-9]/g, '-')
+                                : '';
+                              setEditingBook({ ...book, categoryId });
+                            }}
                             className="p-2 rounded-lg transition-colors"
                             style={{ color: theme.colors.accent }}
                             title="Edit Book"
@@ -1083,7 +1089,13 @@ const AdminPanel: React.FC = () => {
                       </span>
                       <div className="flex gap-1">
                         <button
-                          onClick={() => setEditingBook(book)}
+                          onClick={() => {
+                            // Convert category name to categoryId (slug format)
+                            const categoryId = book.category 
+                              ? book.category.toLowerCase().replace(/[^a-z0-9]/g, '-')
+                              : '';
+                            setEditingBook({ ...book, categoryId });
+                          }}
                           className="p-1.5 rounded"
                           style={{ color: theme.colors.accent }}
                         >

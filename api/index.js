@@ -494,12 +494,28 @@ app.get('/api/books', async (req, res) => {
   }
 });
 
+// GET /api/categories - Returns genres from the taxonomy for category dropdowns
+// Updated to use PRIMARY_GENRES from genreTaxonomy instead of old categories table
 app.get('/api/categories', async (req, res) => {
-  if (checkDb(res)) return;
   try {
-    const { data, error } = await supabase.from('categories').select('*').order('name');
-    if (error) throw error;
-    res.json(data);
+    // Import genres from taxonomy - these are the expanded genre list
+    const PRIMARY_GENRES = [
+      'Philosophy', 'Religion', 'Theology', 'Sacred Texts', 'History',
+      'Biography', 'Science', 'Mathematics', 'Medicine', 'Law',
+      'Politics', 'Economics', 'Literature', 'Poetry', 'Drama',
+      'Mythology', 'Military & Strategy', 'Education', 'Linguistics', 'Ethics',
+      'Anthropology', 'Sociology', 'Psychology', 'Geography', 'Astronomy',
+      'Alchemy & Esoterica', 'Art & Architecture'
+    ];
+    
+    // Return in same format as old categories table for frontend compatibility
+    // Using name as id since genres don't have UUIDs
+    const genres = PRIMARY_GENRES.map(name => ({
+      id: name.toLowerCase().replace(/[^a-z0-9]/g, '-'),
+      name: name
+    }));
+    
+    res.json(genres);
   } catch (err) {
     res.status(500).json({ error: 'Failed to fetch categories' });
   }
@@ -1531,11 +1547,33 @@ app.post('/api/admin/books', async (req, res) => {
     return res.status(400).json({ error: 'Title and author are required' });
   }
   
+  // Genre taxonomy for category lookup
+  const PRIMARY_GENRES = [
+    'Philosophy', 'Religion', 'Theology', 'Sacred Texts', 'History',
+    'Biography', 'Science', 'Mathematics', 'Medicine', 'Law',
+    'Politics', 'Economics', 'Literature', 'Poetry', 'Drama',
+    'Mythology', 'Military & Strategy', 'Education', 'Linguistics', 'Ethics',
+    'Anthropology', 'Sociology', 'Psychology', 'Geography', 'Astronomy',
+    'Alchemy & Esoterica', 'Art & Architecture'
+  ];
+  
+  // Convert categoryId (slug) back to genre name
+  let categoryName = 'Uncategorized';
+  if (categoryId) {
+    const matchedGenre = PRIMARY_GENRES.find(g => 
+      g.toLowerCase().replace(/[^a-z0-9]/g, '-') === categoryId.toLowerCase()
+    );
+    if (matchedGenre) {
+      categoryName = matchedGenre;
+    }
+  }
+  
   try {
     const { data, error } = await supabase
       .from('books')
       .insert([{
-        title, author, category_id: categoryId || null,
+        title, author, 
+        category: categoryName, // Use the TEXT category column with genre name
         cover_url: coverUrl || `https://picsum.photos/seed/${Date.now()}/400/600`,
         description: description || null, 
         total_copies: totalCopies || 1, 
@@ -1547,7 +1585,8 @@ app.post('/api/admin/books', async (req, res) => {
         shelf_location: shelfLocation || null,
         floor_number: floorNumber || null, 
         soft_copy_url: softCopyUrl || null, 
-        has_soft_copy: hasSoftCopy || false
+        has_soft_copy: hasSoftCopy || false,
+        genres: categoryName !== 'Uncategorized' ? [categoryName] : null // Also set genres array
       }])
       .select();
       
@@ -1571,11 +1610,33 @@ app.put('/api/admin/books/:bookId', async (req, res) => {
   if (checkDb(res)) return;
   const { bookId } = req.params;
   const { title, author, categoryId, coverUrl, description, isbn, publishedYear, totalCopies, copiesAvailable, callNumber, shelfLocation, floorNumber, softCopyUrl, hasSoftCopy } = req.body;
+  
+  // Genre taxonomy for category lookup
+  const PRIMARY_GENRES = [
+    'Philosophy', 'Religion', 'Theology', 'Sacred Texts', 'History',
+    'Biography', 'Science', 'Mathematics', 'Medicine', 'Law',
+    'Politics', 'Economics', 'Literature', 'Poetry', 'Drama',
+    'Mythology', 'Military & Strategy', 'Education', 'Linguistics', 'Ethics',
+    'Anthropology', 'Sociology', 'Psychology', 'Geography', 'Astronomy',
+    'Alchemy & Esoterica', 'Art & Architecture'
+  ];
+  
   try {
     const updateData = {};
     if (title) updateData.title = title;
     if (author) updateData.author = author;
-    if (categoryId) updateData.category_id = categoryId;
+    
+    // Handle category - convert slug to genre name
+    if (categoryId) {
+      const matchedGenre = PRIMARY_GENRES.find(g => 
+        g.toLowerCase().replace(/[^a-z0-9]/g, '-') === categoryId.toLowerCase()
+      );
+      if (matchedGenre) {
+        updateData.category = matchedGenre;
+        updateData.genres = [matchedGenre]; // Also update genres array
+      }
+    }
+    
     if (coverUrl) updateData.cover_url = coverUrl;
     if (description !== undefined) updateData.description = description;
     if (isbn !== undefined) updateData.isbn = isbn;
