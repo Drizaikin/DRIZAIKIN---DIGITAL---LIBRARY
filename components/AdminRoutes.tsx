@@ -1,9 +1,10 @@
 import React from 'react';
 import { Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
-import { LayoutDashboard, Activity, Filter } from 'lucide-react';
+import { LayoutDashboard, Activity, Filter, BookOpen } from 'lucide-react';
 import AdminPanel from './AdminPanel';
 import AdminHealthDashboard from './AdminHealthDashboard';
 import IngestionFiltersPanel from './IngestionFiltersPanel';
+import { BookManagementPanel } from './admin/book-management';
 import { useAppTheme } from '../hooks/useAppTheme';
 
 /**
@@ -13,8 +14,9 @@ import { useAppTheme } from '../hooks/useAppTheme';
  * - /admin (index) → AdminPanel component
  * - /admin/health → AdminHealthDashboard component
  * - /admin/filters → IngestionFiltersPanel component
+ * - /admin/books → BookManagementPanel component
  * 
- * Requirements: 2.1, 2.2, 2.3, 2.4
+ * Requirements: 2.1, 2.2, 2.3, 2.4, 8.1, 8.2
  */
 const AdminRoutes: React.FC = () => {
   const navigate = useNavigate();
@@ -23,6 +25,7 @@ const AdminRoutes: React.FC = () => {
 
   const navItems = [
     { label: 'Dashboard', path: '/admin', icon: LayoutDashboard },
+    { label: 'Book Management', path: '/admin/books', icon: BookOpen },
     { label: 'Health Status', path: '/admin/health', icon: Activity },
     { label: 'Ingestion Filters', path: '/admin/filters', icon: Filter },
   ];
@@ -99,6 +102,9 @@ const AdminRoutes: React.FC = () => {
           <Routes>
             {/* /admin → AdminPanel (Requirement 2.1, 2.3) */}
             <Route index element={<AdminPanel />} />
+            
+            {/* /admin/books → BookManagementPanel (Requirement 8.1, 8.2) */}
+            <Route path="books" element={<BookManagementPanel />} />
             
             {/* /admin/health → AdminHealthDashboard (Requirement 2.2, 2.4) */}
             <Route path="health" element={<AdminHealthDashboard />} />

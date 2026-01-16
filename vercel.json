@@ -34,6 +34,30 @@
       "use": "@vercel/node"
     },
     {
+      "src": "api/admin/books/index.js",
+      "use": "@vercel/node"
+    },
+    {
+      "src": "api/admin/books/[id].js",
+      "use": "@vercel/node"
+    },
+    {
+      "src": "api/admin/books/[id]/cover.js",
+      "use": "@vercel/node"
+    },
+    {
+      "src": "api/admin/books/search.js",
+      "use": "@vercel/node"
+    },
+    {
+      "src": "api/admin/books/ingest.js",
+      "use": "@vercel/node"
+    },
+    {
+      "src": "api/admin/books/bulk.js",
+      "use": "@vercel/node"
+    },
+    {
       "src": "package.json",
       "use": "@vercel/static-build",
       "config": {
@@ -53,6 +77,30 @@
     {
       "src": "/api/admin/books/bulk-update-categories",
       "dest": "/api/admin/books/bulk-update-categories.js"
+    },
+    {
+      "src": "/api/admin/books/search",
+      "dest": "/api/admin/books/search.js"
+    },
+    {
+      "src": "/api/admin/books/ingest",
+      "dest": "/api/admin/books/ingest.js"
+    },
+    {
+      "src": "/api/admin/books/bulk",
+      "dest": "/api/admin/books/bulk.js"
+    },
+    {
+      "src": "/api/admin/books/([^/]+)/cover",
+      "dest": "/api/admin/books/[id]/cover.js?id=$1"
+    },
+    {
+      "src": "/api/admin/books/([^/]+)",
+      "dest": "/api/admin/books/[id].js?id=$1"
+    },
+    {
+      "src": "/api/admin/books",
+      "dest": "/api/admin/books/index.js"
     },
     {
       "src": "/api/admin/health/actions",
