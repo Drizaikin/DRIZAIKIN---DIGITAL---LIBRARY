@@ -25,10 +25,15 @@ import {
   Tags,
   AlertTriangle,
   Clock,
-  FileText
+  FileText,
+  Filter,
+  User,
+  CheckCircle,
+  Settings
 } from 'lucide-react';
 import { useAppTheme } from '../hooks/useAppTheme';
 import { StatusCard, MetricsCard, ErrorList, ActionButton, HealthStatus } from './admin';
+import { PRIMARY_GENRES } from '../services/ingestion/genreTaxonomy';
 
 // API URL from environment
 const API_URL = import.meta.env.VITE_API_URL || '/api';
@@ -85,6 +90,13 @@ interface ErrorSummary {
   lastAiError: ErrorEntry | null;
 }
 
+interface FilterConfig {
+  allowedGenres: string[];
+  allowedAuthors: string[];
+  enableGenreFilter: boolean;
+  enableAuthorFilter: boolean;
+}
+
 interface HealthMetrics {
   systemStatus: SystemStatus;
   dailyMetrics: DailyMetrics;
@@ -102,6 +114,14 @@ const AdminHealthDashboard: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
   const [lastRefresh, setLastRefresh] = useState<Date | null>(null);
+  
+  // Filter configuration state
+  const [filterConfig, setFilterConfig] = useState<FilterConfig | null>(null);
+  const [filterLoading, setFilterLoading] = useState(false);
+  const [filterSaving, setFilterSaving] = useState(false);
+  const [filterMessage, setFilterMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [authorInput, setAuthorInput] = useState('');
+  const [showFilterConfig, setShowFilterConfig] = useState(false);
 
   // Get admin secret from localStorage or prompt
   const getAdminSecret = (): string | null => {
@@ -184,10 +204,92 @@ const AdminHealthDashboard: React.FC = () => {
     await fetchMetrics(true);
   };
 
+  // Fetch filter configuration
+  const fetchFilterConfig = useCallback(async () => {
+    setFilterLoading(true);
+    try {
+      const secret = getAdminSecret();
+      if (!secret) return;
+
+      const response = await fetch(`${API_URL}/admin/ingestion/filters`, {
+        headers: {
+          'Authorization': `Bearer ${secret}`
+        }
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setFilterConfig(data.config);
+        setAuthorInput(data.config.allowedAuthors?.join(', ') || '');
+      }
+    } catch (err) {
+      console.error('Failed to load filter config:', err);
+    } finally {
+      setFilterLoading(false);
+    }
+  }, []);
+
+  // Save filter configuration
+  const saveFilterConfig = async () => {
+    if (!filterConfig) return;
+    
+    setFilterSaving(true);
+    try {
+      const secret = getAdminSecret();
+      if (!secret) throw new Error('Admin secret required');
+
+      const authors = authorInput
+        .split(',')
+        .map(a => a.trim())
+        .filter(a => a.length > 0);
+
+      const updatedConfig = {
+        ...filterConfig,
+        allowedAuthors: authors
+      };
+
+      const response = await fetch(`${API_URL}/admin/ingestion/filters`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${secret}`
+        },
+        body: JSON.stringify(updatedConfig)
+      });
+
+      if (response.ok) {
+        setFilterConfig(updatedConfig);
+        setFilterMessage({ type: 'success', text: 'Filter configuration saved!' });
+        setTimeout(() => setFilterMessage(null), 3000);
+      } else {
+        const data = await response.json();
+        setFilterMessage({ type: 'error', text: data.errors?.join(', ') || 'Failed to save' });
+        setTimeout(() => setFilterMessage(null), 3000);
+      }
+    } catch (err) {
+      setFilterMessage({ type: 'error', text: 'Failed to save configuration' });
+      setTimeout(() => setFilterMessage(null), 3000);
+    } finally {
+      setFilterSaving(false);
+    }
+  };
+
+  // Toggle genre in filter
+  const handleGenreToggle = (genre: string) => {
+    if (!filterConfig) return;
+    setFilterConfig(prev => prev ? ({
+      ...prev,
+      allowedGenres: prev.allowedGenres.includes(genre)
+        ? prev.allowedGenres.filter(g => g !== genre)
+        : [...prev.allowedGenres, genre]
+    }) : null);
+  };
+
   // Initial fetch on mount
   useEffect(() => {
     fetchMetrics();
-  }, [fetchMetrics]);
+    fetchFilterConfig();
+  }, [fetchMetrics, fetchFilterConfig]);
 
   // Format storage size
   const formatStorageSize = (mb: number): string => {
@@ -443,6 +545,233 @@ const AdminHealthDashboard: React.FC = () => {
             />
           </div>
         </div>
+      </section>
+
+      {/* Ingestion Filter Configuration */}
+      <section className="mb-6">
+        <div className="flex items-center justify-between mb-4">
+          <h2 
+            className="text-lg font-semibold flex items-center gap-2"
+            style={{ color: theme.colors.primaryText }}
+          >
+            <Filter size={20} style={{ color: theme.colors.accent }} />
+            Ingestion Filters
+          </h2>
+          <button
+            onClick={() => setShowFilterConfig(!showFilterConfig)}
+            className="flex items-center gap-2 px-3 py-1.5 text-sm rounded-lg transition-colors"
+            style={{ 
+              backgroundColor: theme.colors.secondarySurface,
+              color: theme.colors.primaryText,
+              border: `1px solid ${theme.colors.logoAccent}40`
+            }}
+          >
+            <Settings size={14} />
+            {showFilterConfig ? 'Hide' : 'Configure'}
+          </button>
+        </div>
+
+        {/* Filter Status Summary */}
+        <div 
+          className="p-4 rounded-xl mb-4"
+          style={{ 
+            backgroundColor: theme.colors.secondarySurface,
+            border: `1px solid ${theme.colors.logoAccent}40`
+          }}
+        >
+          {filterLoading ? (
+            <div className="flex items-center gap-2" style={{ color: theme.colors.mutedText }}>
+              <RefreshCw size={16} className="animate-spin" />
+              Loading filter configuration...
+            </div>
+          ) : filterConfig ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {/* Genre Filter Status */}
+              <div className="flex items-start gap-3">
+                <div 
+                  className="p-2 rounded-lg"
+                  style={{ backgroundColor: filterConfig.enableGenreFilter ? `${theme.colors.accent}20` : `${theme.colors.mutedText}20` }}
+                >
+                  <Tags size={20} style={{ color: filterConfig.enableGenreFilter ? theme.colors.accent : theme.colors.mutedText }} />
+                </div>
+                <div>
+                  <p className="text-sm font-medium" style={{ color: theme.colors.primaryText }}>
+                    Genre Filter: {filterConfig.enableGenreFilter ? (
+                      <span className="text-green-400">Enabled</span>
+                    ) : (
+                      <span style={{ color: theme.colors.mutedText }}>Disabled</span>
+                    )}
+                  </p>
+                  <p className="text-xs" style={{ color: theme.colors.mutedText }}>
+                    {filterConfig.enableGenreFilter && filterConfig.allowedGenres.length > 0 
+                      ? `${filterConfig.allowedGenres.length} genre(s) allowed`
+                      : filterConfig.enableGenreFilter 
+                        ? 'All genres allowed'
+                        : 'No genre filtering'}
+                  </p>
+                </div>
+              </div>
+
+              {/* Author Filter Status */}
+              <div className="flex items-start gap-3">
+                <div 
+                  className="p-2 rounded-lg"
+                  style={{ backgroundColor: filterConfig.enableAuthorFilter ? `${theme.colors.accent}20` : `${theme.colors.mutedText}20` }}
+                >
+                  <User size={20} style={{ color: filterConfig.enableAuthorFilter ? theme.colors.accent : theme.colors.mutedText }} />
+                </div>
+                <div>
+                  <p className="text-sm font-medium" style={{ color: theme.colors.primaryText }}>
+                    Author Filter: {filterConfig.enableAuthorFilter ? (
+                      <span className="text-green-400">Enabled</span>
+                    ) : (
+                      <span style={{ color: theme.colors.mutedText }}>Disabled</span>
+                    )}
+                  </p>
+                  <p className="text-xs" style={{ color: theme.colors.mutedText }}>
+                    {filterConfig.enableAuthorFilter && filterConfig.allowedAuthors.length > 0 
+                      ? `${filterConfig.allowedAuthors.length} author(s) allowed`
+                      : filterConfig.enableAuthorFilter 
+                        ? 'All authors allowed'
+                        : 'No author filtering'}
+                  </p>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <p style={{ color: theme.colors.mutedText }}>Unable to load filter configuration</p>
+          )}
+        </div>
+
+        {/* Expanded Filter Configuration */}
+        {showFilterConfig && filterConfig && (
+          <div 
+            className="p-4 rounded-xl space-y-4"
+            style={{ 
+              backgroundColor: theme.colors.secondarySurface,
+              border: `1px solid ${theme.colors.logoAccent}40`
+            }}
+          >
+            {filterMessage && (
+              <div 
+                className="px-3 py-2 rounded-lg flex items-center gap-2 text-sm"
+                style={{
+                  backgroundColor: filterMessage.type === 'success' ? '#0d3320' : '#3d1f1f',
+                  color: filterMessage.type === 'success' ? '#4ade80' : '#f87171',
+                  border: `1px solid ${filterMessage.type === 'success' ? '#166534' : '#991b1b'}`
+                }}
+              >
+                {filterMessage.type === 'success' ? <CheckCircle size={16} /> : <AlertTriangle size={16} />}
+                {filterMessage.text}
+              </div>
+            )}
+
+            {/* Genre Filter */}
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <label className="text-sm font-medium" style={{ color: theme.colors.primaryText }}>
+                  Genre Filter
+                </label>
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={filterConfig.enableGenreFilter}
+                    onChange={(e) => setFilterConfig({ ...filterConfig, enableGenreFilter: e.target.checked })}
+                    className="w-4 h-4 rounded"
+                    style={{ accentColor: theme.colors.accent }}
+                  />
+                  <span className="text-xs" style={{ color: theme.colors.mutedText }}>Enable</span>
+                </label>
+              </div>
+              <div 
+                className="p-3 rounded-lg"
+                style={{ 
+                  backgroundColor: theme.colors.primaryBg,
+                  border: `1px solid ${theme.colors.logoAccent}40`
+                }}
+              >
+                <p className="text-xs mb-2" style={{ color: theme.colors.mutedText }}>
+                  Select genres to allow during ingestion:
+                </p>
+                <div className="flex flex-wrap gap-1.5 max-h-32 overflow-y-auto">
+                  {PRIMARY_GENRES.map(genre => (
+                    <button
+                      key={genre}
+                      onClick={() => handleGenreToggle(genre)}
+                      className="px-2 py-1 text-xs rounded transition-all"
+                      style={{
+                        backgroundColor: filterConfig.allowedGenres.includes(genre)
+                          ? theme.colors.accent
+                          : theme.colors.secondarySurface,
+                        color: filterConfig.allowedGenres.includes(genre)
+                          ? '#ffffff'
+                          : theme.colors.primaryText,
+                        border: `1px solid ${filterConfig.allowedGenres.includes(genre) 
+                          ? theme.colors.accent 
+                          : `${theme.colors.logoAccent}40`}`
+                      }}
+                    >
+                      {genre}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Author Filter */}
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <label className="text-sm font-medium" style={{ color: theme.colors.primaryText }}>
+                  Author Filter
+                </label>
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={filterConfig.enableAuthorFilter}
+                    onChange={(e) => setFilterConfig({ ...filterConfig, enableAuthorFilter: e.target.checked })}
+                    className="w-4 h-4 rounded"
+                    style={{ accentColor: theme.colors.accent }}
+                  />
+                  <span className="text-xs" style={{ color: theme.colors.mutedText }}>Enable</span>
+                </label>
+              </div>
+              <textarea
+                value={authorInput}
+                onChange={(e) => setAuthorInput(e.target.value)}
+                placeholder="Enter author names (comma-separated)"
+                rows={2}
+                className="w-full px-3 py-2 text-sm rounded-lg focus:outline-none focus:ring-2"
+                style={{ 
+                  backgroundColor: theme.colors.primaryBg,
+                  border: `1px solid ${theme.colors.logoAccent}40`,
+                  color: theme.colors.primaryText
+                }}
+              />
+            </div>
+
+            {/* Save Button */}
+            <div className="flex justify-end">
+              <button
+                onClick={saveFilterConfig}
+                disabled={filterSaving}
+                className="flex items-center gap-2 px-4 py-2 text-sm text-white rounded-lg transition-colors disabled:opacity-50"
+                style={{ backgroundColor: theme.colors.accent }}
+              >
+                {filterSaving ? (
+                  <>
+                    <RefreshCw size={14} className="animate-spin" />
+                    Saving...
+                  </>
+                ) : (
+                  <>
+                    <CheckCircle size={14} />
+                    Save Filters
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        )}
       </section>
 
       {/* Error Summary */}
