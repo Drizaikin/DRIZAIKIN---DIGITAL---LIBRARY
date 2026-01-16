@@ -45,7 +45,36 @@ function getSupabaseClient() {
 }
 
 /**
- * Loads filter configuration from environment variables
+ * Loads filter configuration from database first, then falls back to environment variables
+ * @returns {Promise<Object>} Filter configuration
+ */
+export async function loadFilterConfigAsync() {
+  const client = getSupabaseClient();
+  
+  // Try to get config from database first
+  if (client) {
+    try {
+      const { data, error } = await client
+        .from('ingestion_config')
+        .select('*')
+        .eq('config_key', 'filter_settings')
+        .single();
+      
+      if (!error && data && data.config_value) {
+        console.log('[IngestionFilter] Loaded config from database');
+        return data.config_value;
+      }
+    } catch (err) {
+      console.warn('[IngestionFilter] Database config not available, using env vars:', err.message);
+    }
+  }
+  
+  // Fall back to environment variables
+  return loadFilterConfig();
+}
+
+/**
+ * Loads filter configuration from environment variables (synchronous fallback)
  * @returns {Object} Filter configuration
  */
 export function loadFilterConfig() {

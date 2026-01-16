@@ -7,12 +7,28 @@
  * Requirements: 5.8.5
  * - Validate genre names against taxonomy
  * - Validate author names are non-empty strings
- * - Store configuration in environment variables
+ * - Store configuration in database (ingestion_config table)
  * - Require admin authentication
  */
 
 import { PRIMARY_GENRES } from '../../../services/ingestion/genreTaxonomy.js';
 import { validateGenreNames } from '../../../services/ingestion/ingestionFilter.js';
+import { createClient } from '@supabase/supabase-js';
+
+/**
+ * Gets Supabase client instance
+ * @returns {Object|null} Supabase client or null if not configured
+ */
+function getSupabase() {
+  const url = process.env.SUPABASE_URL;
+  const key = process.env.SUPABASE_KEY || process.env.SUPABASE_SERVICE_KEY;
+  
+  if (!url || !key) {
+    return null;
+  }
+  
+  return createClient(url, key);
+}
 
 /**
  * Validates authorization header against ADMIN_HEALTH_SECRET
@@ -103,25 +119,44 @@ function validateFilterConfig(config) {
 }
 
 /**
- * Gets current filter configuration from environment variables
- * @returns {Object} Current configuration
+ * Gets current filter configuration from database, falling back to environment variables
+ * @returns {Promise<Object>} Current configuration
  */
-function getCurrentConfig() {
-  // Parse allowed genres from environment (comma-separated)
+async function getCurrentConfig() {
+  const client = getSupabase();
+  
+  // Try to get config from database first
+  if (client) {
+    try {
+      const { data, error } = await client
+        .from('ingestion_config')
+        .select('*')
+        .eq('config_key', 'filter_settings')
+        .single();
+      
+      if (!error && data && data.config_value) {
+        console.log('[Filters API] Loaded config from database');
+        return data.config_value;
+      }
+    } catch (err) {
+      console.warn('[Filters API] Database config not available, using env vars:', err.message);
+    }
+  }
+  
+  // Fall back to environment variables
+  console.log('[Filters API] Using environment variables for config');
   const allowedGenresStr = process.env.INGEST_ALLOWED_GENRES || '';
   const allowedGenres = allowedGenresStr
     .split(',')
     .map(g => g.trim())
     .filter(g => g.length > 0);
   
-  // Parse allowed authors from environment (comma-separated)
   const allowedAuthorsStr = process.env.INGEST_ALLOWED_AUTHORS || '';
   const allowedAuthors = allowedAuthorsStr
     .split(',')
     .map(a => a.trim())
     .filter(a => a.length > 0);
   
-  // Parse enable flags
   const enableGenreFilter = process.env.ENABLE_GENRE_FILTER === 'true';
   const enableAuthorFilter = process.env.ENABLE_AUTHOR_FILTER === 'true';
   
@@ -134,12 +169,49 @@ function getCurrentConfig() {
 }
 
 /**
+ * Saves filter configuration to database
+ * @param {Object} config - Configuration to save
+ * @returns {Promise<{success: boolean, error?: string}>}
+ */
+async function saveConfigToDatabase(config) {
+  const client = getSupabase();
+  
+  if (!client) {
+    return { success: false, error: 'Database not configured' };
+  }
+  
+  try {
+    // Upsert the configuration
+    const { error } = await client
+      .from('ingestion_config')
+      .upsert({
+        config_key: 'filter_settings',
+        config_value: config,
+        updated_at: new Date().toISOString()
+      }, {
+        onConflict: 'config_key'
+      });
+    
+    if (error) {
+      console.error('[Filters API] Failed to save config:', error.message);
+      return { success: false, error: error.message };
+    }
+    
+    console.log('[Filters API] Configuration saved to database');
+    return { success: true };
+  } catch (err) {
+    console.error('[Filters API] Error saving config:', err.message);
+    return { success: false, error: err.message };
+  }
+}
+
+/**
  * Handles GET request - retrieve current configuration
  * @param {Response} res - Response object
  */
-function handleGet(res) {
+async function handleGet(res) {
   try {
-    const config = getCurrentConfig();
+    const config = await getCurrentConfig();
     
     return res.status(200).json({
       success: true,
@@ -160,14 +232,12 @@ function handleGet(res) {
 
 /**
  * Handles POST request - update configuration
- * Note: This implementation returns the validated config but doesn't persist it
- * since environment variables can't be modified at runtime.
- * In production, this would write to a database table.
+ * Persists configuration to database for use by ingestion service
  * 
  * @param {Request} req - Request object
  * @param {Response} res - Response object
  */
-function handlePost(req, res) {
+async function handlePost(req, res) {
   try {
     const newConfig = req.body;
     
@@ -183,19 +253,27 @@ function handlePost(req, res) {
       });
     }
     
-    // In a real implementation, this would:
-    // 1. Store configuration in database (ingestion_config table)
-    // 2. Invalidate cache
-    // 3. Notify ingestion service of config change
+    // Save configuration to database
+    const saveResult = await saveConfigToDatabase(newConfig);
     
-    // For now, we return success with the validated config
-    // The actual configuration is still read from environment variables
-    console.log('[Filters API] Configuration validated successfully:', newConfig);
+    if (!saveResult.success) {
+      console.warn('[Filters API] Database save failed, config validated but not persisted:', saveResult.error);
+      return res.status(200).json({
+        success: true,
+        message: 'Configuration validated but could not be persisted to database. Please ensure the ingestion_config table exists.',
+        config: newConfig,
+        persisted: false,
+        timestamp: new Date().toISOString()
+      });
+    }
+    
+    console.log('[Filters API] Configuration saved successfully:', newConfig);
     
     return res.status(200).json({
       success: true,
-      message: 'Configuration validated successfully. Note: Environment variables are still used for actual filtering.',
+      message: 'Filter configuration saved successfully',
       config: newConfig,
+      persisted: true,
       timestamp: new Date().toISOString()
     });
   } catch (error) {
@@ -231,9 +309,9 @@ export default async function handler(req, res) {
   
   // Route based on HTTP method
   if (req.method === 'GET') {
-    return handleGet(res);
+    return await handleGet(res);
   } else if (req.method === 'POST') {
-    return handlePost(req, res);
+    return await handlePost(req, res);
   } else {
     return res.status(405).json({
       success: false,

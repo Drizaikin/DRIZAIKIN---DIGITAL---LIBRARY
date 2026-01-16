@@ -16,7 +16,7 @@ import { insertBook, createJobLog, logJobResult, initSupabase as initDb } from '
 import { getIngestionState, markRunStarted, markRunCompleted, isIngestionPaused, initSupabase as initState } from './stateManager.js';
 import { classifyBook, isClassificationEnabled } from './genreClassifier.js';
 import { generateDescription, isDescriptionGenerationEnabled } from './descriptionGenerator.js';
-import { loadFilterConfig, applyFilters, logFilterDecision, logAndSaveFilterDecision, getFilterSummary, hasActiveFilters, initFilterStatsClient } from './ingestionFilter.js';
+import { loadFilterConfig, loadFilterConfigAsync, applyFilters, logFilterDecision, logAndSaveFilterDecision, getFilterSummary, hasActiveFilters, initFilterStatsClient } from './ingestionFilter.js';
 
 // Configuration for Vercel Hobby plan constraints
 const DEFAULT_BATCH_SIZE = 50;  // Books per API call
@@ -230,8 +230,8 @@ export async function runIngestionJob(options = {}) {
   console.log(`[Orchestrator] Starting ingestion job: ${jobId}`);
   console.log(`[Orchestrator] Options: batchSize=${batchSize}, maxBooks=${maxBooks}, dryRun=${dryRun}`);
   
-  // Load filter configuration (Requirements 5.6.1, 5.7.1-5.7.3)
-  const filterConfig = loadFilterConfig();
+  // Load filter configuration from database first, then env vars (Requirements 5.6.1, 5.7.1-5.7.3)
+  const filterConfig = await loadFilterConfigAsync();
   console.log(`[Orchestrator] Filter configuration: ${getFilterSummary(filterConfig)}`);
   
   // Initialize result tracking

@@ -75,8 +75,16 @@
       "dest": "/api/index.js"
     },
     {
-      "src": "/(.*)",
+      "src": "/assets/(.*)",
+      "dest": "/assets/$1"
+    },
+    {
+      "src": "/(.*\\.(js|css|ico|png|jpg|jpeg|svg|woff|woff2|ttf|eot|json|webp|gif))",
       "dest": "/$1"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/index.html"
     }
   ],
   "crons": [

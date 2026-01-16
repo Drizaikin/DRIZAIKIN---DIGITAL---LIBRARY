@@ -46,7 +46,13 @@ const IngestionFiltersPanel: React.FC = () => {
 
   const loadConfiguration = async () => {
     try {
-      const adminSecret = localStorage.getItem('adminHealthSecret');
+      // Use same key as AdminHealthDashboard for consistency
+      const adminSecret = localStorage.getItem('ADMIN_HEALTH_SECRET');
+      if (!adminSecret) {
+        showMessage('error', 'Please set admin secret in Health Status panel first');
+        setLoading(false);
+        return;
+      }
       const response = await fetch(`${API_URL}/admin/ingestion/filters`, {
         headers: {
           'Authorization': `Bearer ${adminSecret}`
@@ -70,7 +76,8 @@ const IngestionFiltersPanel: React.FC = () => {
 
   const loadStatistics = async () => {
     try {
-      const adminSecret = localStorage.getItem('adminHealthSecret');
+      const adminSecret = localStorage.getItem('ADMIN_HEALTH_SECRET');
+      if (!adminSecret) return;
       const response = await fetch(`${API_URL}/admin/ingestion/filter-stats`, {
         headers: {
           'Authorization': `Bearer ${adminSecret}`
@@ -116,7 +123,12 @@ const IngestionFiltersPanel: React.FC = () => {
         allowedAuthors: authors
       };
 
-      const adminSecret = localStorage.getItem('adminHealthSecret');
+      const adminSecret = localStorage.getItem('ADMIN_HEALTH_SECRET');
+      if (!adminSecret) {
+        showMessage('error', 'Please set admin secret in Health Status panel first');
+        setSaving(false);
+        return;
+      }
       const response = await fetch(`${API_URL}/admin/ingestion/filters`, {
         method: 'POST',
         headers: {
