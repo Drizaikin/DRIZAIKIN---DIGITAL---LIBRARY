@@ -47,6 +47,18 @@ export function getSupabase() {
 
 
 /**
+ * Syncs category field with first genre
+ * @param {Array<string>} genres - Array of genres
+ * @returns {string} Category value
+ */
+function syncCategory(genres) {
+  if (!genres || genres.length === 0) {
+    return 'Uncategorized';
+  }
+  return genres[0];
+}
+
+/**
  * Inserts a book record into the database
  * @param {Object} book - Book data to insert
  * @param {string} book.title - Book title (required)
@@ -58,6 +70,8 @@ export function getSupabase() {
  * @param {string} [book.description] - Book description
  * @param {string} [book.cover_url] - Cover image URL
  * @param {string} [book.category_id] - Category UUID
+ * @param {Array<string>} [book.genres] - AI-determined genres
+ * @param {string} [book.subgenre] - AI-determined sub-genre
  * @returns {Promise<{success: boolean, id?: string, error?: string}>}
  */
 export async function insertBook(book) {
@@ -84,6 +98,9 @@ export async function insertBook(book) {
 
   const client = getSupabase();
   
+  // Auto-sync category with first genre (Requirements 5.4.1, 5.4.2, 5.4.5)
+  const category = syncCategory(book.genres);
+  
   // Prepare book record with defaults
   const bookRecord = {
     title: book.title.trim(),
@@ -97,6 +114,7 @@ export async function insertBook(book) {
     soft_copy_url: book.pdf_url, // Use the same PDF URL for soft copy access
     description: book.description || null,
     cover_url: book.cover_url || 'https://picsum.photos/seed/book/400/600',
+    category: category, // Auto-synced from genres[0] or "Uncategorized"
     category_id: book.category_id || null,
     total_copies: book.total_copies || 1,
     copies_available: book.copies_available || 1,
@@ -280,4 +298,4 @@ export async function getJobLog(jobId) {
   }
 }
 
-export { INTERNET_ARCHIVE_SOURCE };
+export { INTERNET_ARCHIVE_SOURCE, syncCategory };

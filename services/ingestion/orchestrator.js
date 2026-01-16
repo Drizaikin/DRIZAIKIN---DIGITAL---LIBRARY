@@ -16,6 +16,7 @@ import { insertBook, createJobLog, logJobResult, initSupabase as initDb } from '
 import { getIngestionState, markRunStarted, markRunCompleted, isIngestionPaused, initSupabase as initState } from './stateManager.js';
 import { classifyBook, isClassificationEnabled } from './genreClassifier.js';
 import { generateDescription, isDescriptionGenerationEnabled } from './descriptionGenerator.js';
+import { loadFilterConfig, applyFilters, logFilterDecision, logAndSaveFilterDecision, getFilterSummary, hasActiveFilters, initFilterStatsClient } from './ingestionFilter.js';
 
 // Configuration for Vercel Hobby plan constraints
 const DEFAULT_BATCH_SIZE = 50;  // Books per API call
@@ -44,6 +45,7 @@ export function initializeServices(url, key) {
   initStorage(url, key);
   initDb(url, key);
   initState(url, key);
+  initFilterStatsClient(url, key);
 }
 
 
@@ -51,9 +53,11 @@ export function initializeServices(url, key) {
  * Processes a single book through the ingestion pipeline
  * @param {Object} book - Book metadata from Internet Archive
  * @param {boolean} dryRun - If true, log only without side effects
- * @returns {Promise<{status: 'added'|'skipped'|'failed', error?: string}>}
+ * @param {Object} filterConfig - Filter configuration
+ * @param {string} [jobId] - Optional job ID for filter stats logging
+ * @returns {Promise<{status: 'added'|'skipped'|'failed'|'filtered', error?: string, reason?: string}>}
  */
-async function processBook(book, dryRun = false) {
+async function processBook(book, dryRun = false, filterConfig = null, jobId = null) {
   const identifier = book.identifier;
   
   console.log(`[Orchestrator] Processing book: ${book.title} (${identifier})`);
@@ -63,24 +67,7 @@ async function processBook(book, dryRun = false) {
     const pdfUrl = getPdfUrl(identifier);
     console.log(`[Orchestrator] PDF URL: ${pdfUrl}`);
     
-    if (dryRun) {
-      console.log(`[Orchestrator] [DRY RUN] Would download and process: ${identifier}`);
-      return { status: 'added' }; // Report as "would be added"
-    }
-    
-    // Step 2: Download and validate PDF
-    const pdfResult = await downloadAndValidate(pdfUrl);
-    if (!pdfResult) {
-      console.error(`[Orchestrator] PDF validation failed for: ${identifier}`);
-      return { status: 'failed', error: 'PDF download or validation failed' };
-    }
-    
-    // Step 3: Sanitize filename and upload to storage
-    const sanitizedFilename = sanitizeFilename(identifier);
-    const storedPdfUrl = await uploadPdf(pdfResult.buffer, sanitizedFilename);
-    console.log(`[Orchestrator] Uploaded to storage: ${storedPdfUrl}`);
-    
-    // Step 4: Parse publication year from date
+    // Step 2: Parse publication year from date
     let year = null;
     if (book.date) {
       const yearMatch = book.date.match(/\d{4}/);
@@ -89,7 +76,7 @@ async function processBook(book, dryRun = false) {
       }
     }
     
-    // Step 5: AI Genre Classification (non-blocking, with idempotency check)
+    // Step 3: AI Genre Classification (non-blocking, with idempotency check)
     let genres = null;
     let subgenre = null;
     
@@ -126,7 +113,46 @@ async function processBook(book, dryRun = false) {
       }
     }
     
-    // Step 6: AI Description Generation (non-blocking)
+    // Step 4: Apply Filters (after AI classification, before PDF download - Requirement 5.6.6)
+    if (filterConfig && hasActiveFilters(filterConfig)) {
+      const filterResult = applyFilters({
+        identifier: identifier,
+        title: book.title,
+        author: book.creator,
+        genres: genres
+      }, filterConfig);
+      
+      if (!filterResult.passed) {
+        console.log(`[Orchestrator] Book filtered: ${book.title} - ${filterResult.reason}`);
+        // Log and save filter decision to database (non-blocking)
+        logAndSaveFilterDecision({ identifier, title: book.title, author: book.creator, genres }, filterResult, jobId)
+          .catch(err => console.warn(`[Orchestrator] Filter stats save failed: ${err.message}`));
+        return { status: 'filtered', reason: filterResult.reason };
+      } else {
+        // Also log passed books for complete statistics
+        logAndSaveFilterDecision({ identifier, title: book.title, author: book.creator, genres }, filterResult, jobId)
+          .catch(err => console.warn(`[Orchestrator] Filter stats save failed: ${err.message}`));
+      }
+    }
+    
+    if (dryRun) {
+      console.log(`[Orchestrator] [DRY RUN] Would download and process: ${identifier}`);
+      return { status: 'added' }; // Report as "would be added"
+    }
+    
+    // Step 5: Download and validate PDF
+    const pdfResult = await downloadAndValidate(pdfUrl);
+    if (!pdfResult) {
+      console.error(`[Orchestrator] PDF validation failed for: ${identifier}`);
+      return { status: 'failed', error: 'PDF download or validation failed' };
+    }
+    
+    // Step 6: Sanitize filename and upload to storage
+    const sanitizedFilename = sanitizeFilename(identifier);
+    const storedPdfUrl = await uploadPdf(pdfResult.buffer, sanitizedFilename);
+    console.log(`[Orchestrator] Uploaded to storage: ${storedPdfUrl}`);
+    
+    // Step 7: AI Description Generation (non-blocking)
     let description = book.description || null;
     
     if (isDescriptionGenerationEnabled()) {
@@ -150,7 +176,7 @@ async function processBook(book, dryRun = false) {
       }
     }
     
-    // Step 7: Insert book record into database
+    // Step 8: Insert book record into database
     const bookRecord = {
       title: book.title || 'Unknown Title',
       author: book.creator || 'Unknown Author',
@@ -204,6 +230,10 @@ export async function runIngestionJob(options = {}) {
   console.log(`[Orchestrator] Starting ingestion job: ${jobId}`);
   console.log(`[Orchestrator] Options: batchSize=${batchSize}, maxBooks=${maxBooks}, dryRun=${dryRun}`);
   
+  // Load filter configuration (Requirements 5.6.1, 5.7.1-5.7.3)
+  const filterConfig = loadFilterConfig();
+  console.log(`[Orchestrator] Filter configuration: ${getFilterSummary(filterConfig)}`);
+  
   // Initialize result tracking
   const result = {
     jobId,
@@ -214,6 +244,9 @@ export async function runIngestionJob(options = {}) {
     added: 0,
     skipped: 0,
     failed: 0,
+    filtered: 0,  // New: track filtered books (Requirement 5.7.1-5.7.3)
+    filteredByGenre: 0,  // New: track genre filter rejections
+    filteredByAuthor: 0,  // New: track author filter rejections
     errors: [],
     nextPage: null,
     lastCursor: null,
@@ -322,10 +355,20 @@ export async function runIngestionJob(options = {}) {
         totalProcessed++;
         
         try {
-          const bookResult = await processBook(book, dryRun);
+          const bookResult = await processBook(book, dryRun, filterConfig, dbJobId);
           
           if (bookResult.status === 'added') {
             result.added++;
+          } else if (bookResult.status === 'filtered') {
+            // Track filter statistics (Requirements 5.7.1-5.7.3)
+            result.filtered++;
+            
+            // Determine which filter rejected the book
+            if (bookResult.reason && bookResult.reason.includes('Genre filter')) {
+              result.filteredByGenre++;
+            } else if (bookResult.reason && bookResult.reason.includes('Author filter')) {
+              result.filteredByAuthor++;
+            }
           } else if (bookResult.status === 'failed') {
             result.failed++;
             result.errors.push({
@@ -403,7 +446,7 @@ export async function runIngestionJob(options = {}) {
   // Log summary
   const duration = Date.now() - startTime;
   console.log(`[Orchestrator] Job ${jobId} completed in ${duration}ms with status: ${result.status}`);
-  console.log(`[Orchestrator] Summary: processed=${result.processed}, added=${result.added}, skipped=${result.skipped}, failed=${result.failed}`);
+  console.log(`[Orchestrator] Summary: processed=${result.processed}, added=${result.added}, skipped=${result.skipped}, filtered=${result.filtered} (genre=${result.filteredByGenre}, author=${result.filteredByAuthor}), failed=${result.failed}`);
   console.log(`[Orchestrator] Next run will start from page ${result.nextPage}`);
   
   return result;

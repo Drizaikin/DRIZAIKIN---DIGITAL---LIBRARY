@@ -10,6 +10,7 @@ import { authService } from '../services/authService';
 import { uploadPdfToSupabase, isDirectUploadAvailable } from '../services/supabaseClient';
 import LiveTimer from './LiveTimer';
 import ExtractionPanel from './ExtractionPanel';
+import IngestionFiltersPanel from './IngestionFiltersPanel';
 import { useAppTheme } from '../hooks/useAppTheme';
 
 // Use environment variable or relative path for Vercel deployment
@@ -58,7 +59,7 @@ interface ActiveLoan {
 
 type SortField = 'title' | 'author' | 'popularity' | 'publishedYear' | 'addedDate' | 'borrowCount';
 type SortOrder = 'asc' | 'desc';
-type AdminTab = 'books' | 'users' | 'requests' | 'loans' | 'extractions';
+type AdminTab = 'books' | 'users' | 'requests' | 'loans' | 'extractions' | 'filters';
 
 const AdminPanel: React.FC = () => {
   const theme = useAppTheme();
@@ -556,6 +557,7 @@ const AdminPanel: React.FC = () => {
               </>
             )}
             {activeTab === 'extractions' && <><Download size={18} /> Extractions</>}
+            {activeTab === 'filters' && <><Filter size={18} /> Ingestion Filters</>}
           </span>
           <Menu 
             size={20} 
@@ -644,6 +646,17 @@ const AdminPanel: React.FC = () => {
             >
               <Download size={18} />
               Extractions
+            </button>
+            <button
+              onClick={() => handleTabChange('filters')}
+              className="w-full flex items-center gap-2 px-4 py-3 text-left transition-colors"
+              style={{ 
+                backgroundColor: activeTab === 'filters' ? `${theme.colors.accent}15` : 'transparent',
+                color: activeTab === 'filters' ? theme.colors.accent : theme.colors.primaryText
+              }}
+            >
+              <Filter size={18} />
+              Ingestion Filters
             </button>
           </div>
         )}
@@ -742,6 +755,17 @@ const AdminPanel: React.FC = () => {
           >
             <Download size={18} />
             Extractions
+          </button>
+          <button
+            onClick={() => setActiveTab('filters')}
+            className="flex items-center gap-2 px-4 py-3 font-medium transition-all whitespace-nowrap"
+            style={{ 
+              color: activeTab === 'filters' ? theme.colors.accent : theme.colors.mutedText,
+              borderBottom: activeTab === 'filters' ? `2px solid ${theme.colors.accent}` : '2px solid transparent'
+            }}
+          >
+            <Filter size={18} />
+            Ingestion Filters
           </button>
         </div>
 
@@ -2045,6 +2069,11 @@ const AdminPanel: React.FC = () => {
       {/* Extractions Tab - Requirement 7.1 */}
       {activeTab === 'extractions' && (
         <ExtractionPanel />
+      )}
+
+      {/* Ingestion Filters Tab - Requirement 5.8.1 */}
+      {activeTab === 'filters' && (
+        <IngestionFiltersPanel />
       )}
     </div>
   );
