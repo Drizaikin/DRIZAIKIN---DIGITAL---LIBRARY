@@ -1,8 +1,9 @@
 import React from 'react';
 import { Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
-import { LayoutDashboard, Activity } from 'lucide-react';
+import { LayoutDashboard, Activity, Filter } from 'lucide-react';
 import AdminPanel from './AdminPanel';
 import AdminHealthDashboard from './AdminHealthDashboard';
+import IngestionFiltersPanel from './IngestionFiltersPanel';
 import { useAppTheme } from '../hooks/useAppTheme';
 
 /**
@@ -11,6 +12,7 @@ import { useAppTheme } from '../hooks/useAppTheme';
  * Routes:
  * - /admin (index) → AdminPanel component
  * - /admin/health → AdminHealthDashboard component
+ * - /admin/filters → IngestionFiltersPanel component
  * 
  * Requirements: 2.1, 2.2, 2.3, 2.4
  */
@@ -22,6 +24,7 @@ const AdminRoutes: React.FC = () => {
   const navItems = [
     { label: 'Dashboard', path: '/admin', icon: LayoutDashboard },
     { label: 'Health Status', path: '/admin/health', icon: Activity },
+    { label: 'Ingestion Filters', path: '/admin/filters', icon: Filter },
   ];
 
   const isActive = (path: string) => {
@@ -92,7 +95,6 @@ const AdminRoutes: React.FC = () => {
           </select>
         </div>
 
-        {/* Main Content Area */}
         <div className="flex-1 min-w-0 overflow-x-hidden">
           <Routes>
             {/* /admin → AdminPanel (Requirement 2.1, 2.3) */}
@@ -100,6 +102,9 @@ const AdminRoutes: React.FC = () => {
             
             {/* /admin/health → AdminHealthDashboard (Requirement 2.2, 2.4) */}
             <Route path="health" element={<AdminHealthDashboard />} />
+            
+            {/* /admin/filters → IngestionFiltersPanel */}
+            <Route path="filters" element={<IngestionFiltersPanel />} />
             
             {/* Redirect any unknown admin sub-routes to /admin */}
             <Route path="*" element={<Navigate to="/admin" replace />} />
