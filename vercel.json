@@ -26,14 +26,6 @@
       "use": "@vercel/node"
     },
     {
-      "src": "api/admin/ingestion/filter-stats.js",
-      "use": "@vercel/node"
-    },
-    {
-      "src": "api/admin/books/bulk-update-categories.js",
-      "use": "@vercel/node"
-    },
-    {
       "src": "api/admin/books/index.js",
       "use": "@vercel/node"
     },
@@ -54,10 +46,6 @@
       "use": "@vercel/node"
     },
     {
-      "src": "api/admin/books/bulk.js",
-      "use": "@vercel/node"
-    },
-    {
       "src": "package.json",
       "use": "@vercel/static-build",
       "config": {
@@ -67,16 +55,16 @@
   ],
   "routes": [
     {
-      "src": "/api/admin/ingestion/filter-stats",
-      "dest": "/api/admin/ingestion/filter-stats.js"
-    },
-    {
       "src": "/api/admin/ingestion/filters",
       "dest": "/api/admin/ingestion/filters.js"
     },
     {
+      "src": "/api/admin/ingestion/filter-stats",
+      "dest": "/api/admin/ingestion/filters.js"
+    },
+    {
       "src": "/api/admin/books/bulk-update-categories",
-      "dest": "/api/admin/books/bulk-update-categories.js"
+      "dest": "/api/admin/books/index.js"
     },
     {
       "src": "/api/admin/books/search",
@@ -88,7 +76,7 @@
     },
     {
       "src": "/api/admin/books/bulk",
-      "dest": "/api/admin/books/bulk.js"
+      "dest": "/api/admin/books/index.js"
     },
     {
       "src": "/api/admin/books/([^/]+)/cover",

@@ -288,7 +288,112 @@ async function handlePost(req, res) {
 }
 
 /**
+ * Computes filter statistics from recent ingestion logs
+ * @param {number} limit - Number of recent jobs to analyze
+ * @returns {Promise<Object>} Filter statistics
+ */
+async function computeFilterStatistics(limit = 10) {
+  const client = getSupabase();
+  
+  if (!client) {
+    return {
+      totalEvaluated: 0,
+      passed: 0,
+      filtered: 0,
+      jobsAnalyzed: 0,
+      topFilteredGenres: [],
+      topFilteredAuthors: [],
+      note: 'Database not configured'
+    };
+  }
+  
+  try {
+    // Fetch recent ingestion logs
+    const { data: logs, error } = await client
+      .from('ingestion_logs')
+      .select('*')
+      .order('started_at', { ascending: false })
+      .limit(limit);
+    
+    if (error || !logs || logs.length === 0) {
+      return {
+        totalEvaluated: 0,
+        passed: 0,
+        filtered: 0,
+        jobsAnalyzed: 0,
+        topFilteredGenres: [],
+        topFilteredAuthors: []
+      };
+    }
+    
+    let totalEvaluated = 0;
+    let totalAdded = 0;
+    let totalFiltered = 0;
+    
+    for (const log of logs) {
+      const processed = log.books_processed || 0;
+      const added = log.books_added || 0;
+      const skipped = log.books_skipped || 0;
+      const failed = log.books_failed || 0;
+      const filtered = Math.max(0, processed - (added + skipped + failed));
+      
+      totalEvaluated += processed;
+      totalAdded += added;
+      totalFiltered += filtered;
+    }
+    
+    return {
+      totalEvaluated,
+      passed: totalAdded,
+      filtered: totalFiltered,
+      filteredByGenre: 0,
+      filteredByAuthor: 0,
+      jobsAnalyzed: logs.length,
+      topFilteredGenres: [],
+      topFilteredAuthors: []
+    };
+  } catch (error) {
+    console.error(`[Filters API] Error computing statistics: ${error.message}`);
+    return {
+      totalEvaluated: 0,
+      passed: 0,
+      filtered: 0,
+      jobsAnalyzed: 0,
+      topFilteredGenres: [],
+      topFilteredAuthors: []
+    };
+  }
+}
+
+/**
+ * Handles GET request for filter statistics
+ * @param {Request} req - Request object
+ * @param {Response} res - Response object
+ */
+async function handleGetStats(req, res) {
+  try {
+    const limit = parseInt(req.query.limit) || 10;
+    const stats = await computeFilterStatistics(Math.min(Math.max(limit, 1), 100));
+    
+    return res.status(200).json({
+      success: true,
+      statistics: stats,
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    console.error(`[Filters API] Error retrieving statistics: ${error.message}`);
+    return res.status(500).json({
+      success: false,
+      error: 'Internal server error',
+      message: 'Failed to retrieve filter statistics',
+      timestamp: new Date().toISOString()
+    });
+  }
+}
+
+/**
  * Vercel Serverless Function Handler
+ * Handles both /api/admin/ingestion/filters and /api/admin/ingestion/filter-stats
  * @param {Request} req - Incoming request
  * @param {Response} res - Outgoing response
  */
@@ -307,7 +412,22 @@ export default async function handler(req, res) {
     });
   }
   
-  // Route based on HTTP method
+  // Check if this is a filter-stats request (routed here via vercel.json)
+  const url = req.url || '';
+  if (url.includes('filter-stats')) {
+    if (req.method === 'GET') {
+      return await handleGetStats(req, res);
+    } else {
+      return res.status(405).json({
+        success: false,
+        error: 'Method not allowed',
+        message: 'This endpoint only accepts GET requests',
+        timestamp: new Date().toISOString()
+      });
+    }
+  }
+  
+  // Route based on HTTP method for filters endpoint
   if (req.method === 'GET') {
     return await handleGet(res);
   } else if (req.method === 'POST') {
@@ -323,4 +443,4 @@ export default async function handler(req, res) {
 }
 
 // Export for testing
-export { validateAuthorization, validateFilterConfig, getCurrentConfig };
+export { validateAuthorization, validateFilterConfig, getCurrentConfig, computeFilterStatistics };
